@@ -53,14 +53,14 @@ local function Time()
     for i = 1,3 do
         -- update(i)
         local st = loop_points[heads[i]][1]
-        -- stereo('position', i, st)
+        stereo('position', i, st)
     end
     clock.run(function()
         while true do
             for i = 1,3 do
                 update(i)
                 local st = loop_points[heads[i]][1]
-                stereo('position', i, st)
+                -- stereo('position', i, st)
             end
             
             clock.sleep(time)
