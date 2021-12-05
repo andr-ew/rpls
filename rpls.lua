@@ -4,7 +4,7 @@ cs = require 'controlspec'
 
 buf_time = 16777216 / 48000 --exact time from the sofctcut source
 play_fade = 0.1
-rec_fade = 0.01
+rec_fade = 0.05
 
 audio.level_cut(1.0)
 audio.level_adc_cut(1)
@@ -27,19 +27,19 @@ local function Time()
     local function update(i)
         local st = loop_points[heads[i]][1]
         local en = loop_points[heads[i]][2]
-        local mar = play_fade*1
+        local mar = rec_fade
 
-        stereo('loop_start', i, i==3 and (st) or (st+mar))
-        stereo('loop_end', i, i==3 and (en) or (en-mar))
+        stereo('loop_start', i, i==3 and (st-mar) or (st))
+        stereo('loop_end', i, i==3 and (en+mar) or (en))
     end
 
     params:add{
         type='control', id='time',
-        controlspec = cs.def{ min = 0.1*3, max = 5*3, default = 4 },
+        controlspec = cs.def{ min = 0.4, max = 5*3, default = 4 },
         action = function(v)
             time = v/3
 
-            local mar = play_fade*4 + 6
+            local mar = play_fade*4 + (5*3)
             for i = 1,3 do
                 loop_points[i][1] = (i - 1) * (mar)
                 loop_points[i][2] = (i- 1) * (mar) + time
