@@ -17,12 +17,12 @@ local function stereo(command, pair, ...)
     end
 end
 
-local function Time()
-    loop_points = {}
+local function time()
+    local loop_points = {}
     for i = 1,3 do loop_points[i] = { 0, 0 } end
 
-    heads = { 1, 2, 3 }
-    time = 1
+    local heads = { 1, 2, 3 }
+    local time = 1
 
     local function update(i)
         local st = loop_points[heads[i]][1]
@@ -69,7 +69,7 @@ local function Time()
     end)
 end
 
-local function Head(idx)
+local function head(idx)
     stereo('enable', idx, 1)
     stereo('level_slew_time', idx, 0.1)
     stereo('recpre_slew_time', idx, 0.1)
@@ -81,11 +81,11 @@ local function Head(idx)
     softcut.buffer(off + 2, 2)
 end
 
-local function Rechead()
+local function rechead()
     idx = 3
     local off = (idx - 1) * 2
 
-    Head(idx)
+    head(idx)
 
     stereo('loop', idx, 1)
     stereo('rec', idx, 1)
@@ -132,10 +132,10 @@ local function Rechead()
     }
 end
 
-local function Playhead(idx)
+local function playhead(idx)
     local off = (idx - 1) * 2
 
-    Head(idx)
+    head(idx)
     
     stereo('rec', idx, 0)
     stereo('play', idx, 1)
@@ -182,10 +182,10 @@ local function Playhead(idx)
     end
 end
 
-Time()
-Playhead(1)
-Playhead(2)
-Rechead()
+time()
+playhead(1)
+playhead(2)
+rechead()
 
 function init()
     params:set('rate 1', 3)
@@ -193,4 +193,11 @@ function init()
     params:set('level 2', 0.5)
 
     params:bang()
+end
+
+function redraw()
+    screen.clear()
+    screen.move(20, 20)
+    screen.text'play audio in'
+    screen.update()
 end
