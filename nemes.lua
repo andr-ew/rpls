@@ -36,7 +36,7 @@ local function time()
 
     params:add{
         type='control', id='time',
-        controlspec = cs.def{ min = 0.06, max = 5*3, default = 1.5 },
+        controlspec = cs.def{ min = 0.06, max = 5*3, default = 1.85 },
         action = function(v)
             time = v/3
 
@@ -125,7 +125,7 @@ local function rechead()
         }
     end
     params:add{
-        type = 'control', id = 'feedback', controlspec = cs.def{ default = 0.5 },
+        type = 'control', id = 'feedback', controlspec = cs.def{ default = 0.54 },
         action = function(v)
             softcut.level_cut_cut(1 + off, 2 + off, v)
             softcut.level_cut_cut(2 + off, 1 + off, v)
@@ -161,7 +161,7 @@ local function playhead(idx)
 
         params:add{
             type='control', id = 'level '..idx,
-            controlspec = cs.def { default = 1 },
+            controlspec = cs.def { default = .8 },
             action = function(v) lvl = v; update() end
         }
         params:add{
@@ -189,9 +189,9 @@ playhead(2)
 rechead()
 
 function init()
-    params:set('rate 1', 3)
-    params:set('rate 2', 1)
-    params:set('level 2', 0.5)
+    params:set('rate 1', 4)
+    params:set('rate 2', 6)
+    params:set('level 2', 0.91)
 
     params:bang()
 end
