@@ -1,5 +1,5 @@
-# rpls
-tidal repitch echo
+# nemes
+phonetic fracture prism
 
 ## requirements
 - norns (210927)
@@ -7,4 +7,4 @@ tidal repitch echo
 - midi controller (optional)
 
 ## install
-`;install https://github.com/andr-ew/rpls`
+`;install https://github.com/zunaito/rpls`
