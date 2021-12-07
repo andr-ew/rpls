@@ -3,8 +3,9 @@
 cs = require 'controlspec'
 
 buf_time = 16777216 / 48000 --exact time from the sofctcut source
-play_fade = 0.1
-rec_fade = 0.05
+play_mar = 0.1
+rec_mar = 0.2
+-- rec_fade = 0.1
 
 audio.level_cut(1.0)
 audio.level_adc_cut(1)
@@ -17,6 +18,12 @@ local function stereo(command, pair, ...)
     end
 end
 
+local rates = { -2, -1, -0.5, 0.5, 1, 2 }
+local function get_rate(idx)
+    local id = 'rate '..idx
+    return idx==3 and 1 or rates[params:get(id)]
+end
+
 local function time()
     local loop_points = {}
     for i = 1,3 do loop_points[i] = { 0, 0 } end
@@ -27,19 +34,22 @@ local function time()
     local function update(i)
         local st = loop_points[heads[i]][1]
         local en = loop_points[heads[i]][2]
-        local mar = rec_fade
+        local rate = get_rate(i)
+        local rev = rate < 0
 
-        stereo('loop_start', i, i==3 and (st-mar) or (st))
-        stereo('loop_end', i, i==3 and (en+mar) or (en))
+        local mar = 0 --rec_mar
+
+        -- stereo('loop_start', i, i==3 and (st-mar) or (rev and st-5 or st))
+        -- stereo('loop_end', i, i==3 and (en+mar) or (rev and en or en+5))
     end
 
     params:add{
         type='control', id='time',
-        controlspec = cs.def{ min = 0.4, max = 5*3, default = 4 },
+        controlspec = cs.def{ min = 0.2, max = 2*3, default = 4 },
         action = function(v)
             time = v/3
 
-            local mar = play_fade*4 + (5*3)
+            local mar = (0.5*2) + (5*3)
             for i = 1,3 do
                 loop_points[i][1] = (i - 1) * (mar)
                 loop_points[i][2] = (i- 1) * (mar) + time
@@ -53,20 +63,54 @@ local function time()
     for i = 1,3 do
         -- update(i)
         local st = loop_points[heads[i]][1]
-        stereo('position', i, st)
+        -- stereo('position', i, st)
+        stereo('loop_start', i, 0)
+        stereo('loop_end', i, buf_time)
     end
     clock.run(function()
         while true do
             for i = 1,3 do
                 update(i)
-                local st = loop_points[heads[i]][1]
-                -- stereo('position', i, st)
+
+                local st = loop_points[heads[i]][1] + play_mar
+                local en = loop_points[heads[i]][2] - play_mar
+                local rate = get_rate(i)
+                local rev = rate < 0
+
+                stereo('position', i, rev and en or st)
             end
             
-            clock.sleep(time)
+            clock.sleep(time/2)
+
+            for i = 1,2 do 
+                local st = loop_points[heads[i]][1]
+                local en = loop_points[heads[i]][2] - play_mar
+                local rate = get_rate(i)
+                local rev = rate < 0
+                local div = math.abs(rate) > 1
+
+                if div then stereo('position', i, rev and en or st) end
+            end
+            
+            clock.sleep(time/2)
+
             table.insert(heads, 1, table.remove(heads, #heads))
         end
     end)
+end
+
+local function globals()
+    params:add{
+        type='control', id='fade',
+        controlspec = cs.def { default = 0.1, quantum = 1/100/10, step = 0, max = 0.5 },
+        action = function(v)
+            for i = 1,6 do
+                softcut.fade_time(i, v)
+                play_mar = v
+                rec_mar = v*2
+            end
+        end
+    }
 end
 
 local function head(idx)
@@ -87,12 +131,12 @@ local function rechead()
 
     head(idx)
 
-    stereo('loop', idx, 1)
+    stereo('loop', idx, 0)
     stereo('rec', idx, 1)
     stereo('play', idx, 0)
     stereo('pre_level', idx, 0)
     stereo('rec_level', idx, 1)
-    stereo('fade_time', idx, rec_fade)
+    -- stereo('fade_time', idx, rec_fade)
 
     do
         local route = 'stereo'
@@ -139,11 +183,11 @@ local function playhead(idx)
     
     stereo('rec', idx, 0)
     stereo('play', idx, 1)
-    stereo('loop', idx, 1)
+    stereo('loop', idx, 0)
     stereo('level_input_cut', 1, idx, 0)
     stereo('level_input_cut', 2, idx, 0)
     stereo('pre_level', idx, 1)
-    stereo('fade_time', idx, play_fade)
+    -- stereo('fade_time', idx, play_mar)
 
     -- stereo('post_filter_dry', idx, 0)
     -- stereo('rec', idx, 1)
@@ -171,7 +215,6 @@ local function playhead(idx)
     end
     do
         local names = { '-2x', '-1x', '-1/2x', '1/2x', '1x', '2x' }
-        local rates = { -2, -1, -0.5, 0.5, 1, 2 }
         params:add{
             type='option', id = 'rate '..idx,
             options = names, default = 5,
@@ -182,15 +225,17 @@ local function playhead(idx)
     end
 end
 
-time()
 playhead(1)
 playhead(2)
 rechead()
+globals()
+time()
 
 function init()
     params:set('rate 1', 3)
     params:set('rate 2', 1)
     params:set('level 2', 0.5)
+    params:read()
 
     params:bang()
 end
@@ -200,4 +245,8 @@ function redraw()
     screen.move(20, 20)
     screen.text'play audio in'
     screen.update()
+end
+
+function cleanup()
+    params:write()
 end
