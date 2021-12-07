@@ -31,21 +31,9 @@ local function time()
     local heads = { 1, 2, 3 }
     local time = 1
 
-    local function update(i)
-        local st = loop_points[heads[i]][1]
-        local en = loop_points[heads[i]][2]
-        local rate = get_rate(i)
-        local rev = rate < 0
-
-        local mar = 0 --rec_mar
-
-        -- stereo('loop_start', i, i==3 and (st-mar) or (rev and st-5 or st))
-        -- stereo('loop_end', i, i==3 and (en+mar) or (rev and en or en+5))
-    end
-
     params:add{
         type='control', id='time',
-        controlspec = cs.def{ min = 0.1, max = 2*3, default = 4 },
+        controlspec = cs.def{ min = 0.001, max = 2*3, default = 4 },
         action = function(v)
             time = v/3
 
@@ -53,48 +41,52 @@ local function time()
             for i = 1,3 do
                 loop_points[i][1] = (i - 1) * (mar)
                 loop_points[i][2] = (i- 1) * (mar) + time
-
-                update(i)
             end
         end
     }
 
 
     for i = 1,3 do
-        -- update(i)
-        local st = loop_points[heads[i]][1]
-        -- stereo('position', i, st)
         stereo('loop_start', i, 0)
         stereo('loop_end', i, buf_time)
     end
+    
+    local tick = { 10, 10, 10 }
+    local quant = 0.001
+
+    local function res(i)
+        local st = loop_points[heads[i]][1]-- + play_mar
+        local en = loop_points[heads[i]][2]-- - play_mar
+        local rate = get_rate(i)
+        local rev = rate < 0
+
+        stereo('position', i, rev and en or st)
+
+        tick[i] = 0
+    end
+
+    local function resall()
+        for i = 1,3 do
+            res(i)
+        end
+        table.insert(heads, 1, table.remove(heads, #heads))
+    end
+    
     clock.run(function()
         while true do
-            for i = 1,3 do
-                update(i)
+            if tick[3] >= time then
+                resall()
+            else
+                for i = 1,3 do
+                    local rate = get_rate(i)
+                    local div = math.abs(rate)
 
-                local st = loop_points[heads[i]][1]-- + play_mar
-                local en = loop_points[heads[i]][2]-- - play_mar
-                local rate = get_rate(i)
-                local rev = rate < 0
-
-                stereo('position', i, rev and en or st)
+                    if tick[i] >= time/div then res(i) end
+                end
             end
             
-            clock.sleep(time/2)
-
-            for i = 1,2 do 
-                local st = loop_points[heads[i]][1]
-                local en = loop_points[heads[i]][2]
-                local rate = get_rate(i)
-                local rev = rate < 0
-                local div = math.abs(rate) > 1
-
-                if div then stereo('position', i, rev and en or st) end
-            end
-            
-            clock.sleep(time/2)
-
-            table.insert(heads, 1, table.remove(heads, #heads))
+            clock.sleep(quant)
+            for i = 1,3 do tick[i] = tick[i] + quant end
         end
     end)
 end
