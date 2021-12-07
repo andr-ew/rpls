@@ -45,7 +45,7 @@ local function time()
 
     params:add{
         type='control', id='time',
-        controlspec = cs.def{ min = 0.2, max = 2*3, default = 4 },
+        controlspec = cs.def{ min = 0.15, max = 2*3, default = 4 },
         action = function(v)
             time = v/3
 
@@ -102,7 +102,7 @@ end
 local function globals()
     params:add{
         type='control', id='fade',
-        controlspec = cs.def { default = 0.1, quantum = 1/100/10, step = 0, max = 0.5 },
+        controlspec = cs.def { default = 0.01, quantum = 1/100/10, step = 0, max = 0.5 },
         action = function(v)
             for i = 1,6 do
                 softcut.fade_time(i, v)
@@ -134,7 +134,7 @@ local function rechead()
     stereo('loop', idx, 0)
     stereo('rec', idx, 1)
     stereo('play', idx, 0)
-    stereo('pre_level', idx, 0)
+    -- stereo('pre_level', idx, 0)
     stereo('rec_level', idx, 1)
     -- stereo('fade_time', idx, rec_fade)
 
@@ -170,8 +170,9 @@ local function rechead()
     params:add{
         type = 'control', id = 'feedback', controlspec = cs.def{ default = 0.5 },
         action = function(v)
-            softcut.level_cut_cut(1 + off, 2 + off, v)
-            softcut.level_cut_cut(2 + off, 1 + off, v)
+            -- softcut.level_cut_cut(1 + off, 2 + off, v)
+            -- softcut.level_cut_cut(2 + off, 1 + off, v)
+            stereo('pre_level', idx, v)
         end
     }
 end
