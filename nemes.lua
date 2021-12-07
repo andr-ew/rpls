@@ -1,4 +1,5 @@
--- rpls
+-- nemes
+-- @glia rpls flip
 
 cs = require 'controlspec'
 
@@ -35,7 +36,7 @@ local function time()
 
     params:add{
         type='control', id='time',
-        controlspec = cs.def{ min = 0.4, max = 5*3, default = 4 },
+        controlspec = cs.def{ min = 0.06, max = 5*3, default = 1.5 },
         action = function(v)
             time = v/3
 
@@ -198,6 +199,6 @@ end
 function redraw()
     screen.clear()
     screen.move(20, 20)
-    screen.text'play audio in'
+    screen.text'nemes prism'
     screen.update()
 end
