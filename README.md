@@ -7,4 +7,4 @@ phonetic fracture prism
 - midi controller (optional)
 
 ## install
-`;install https://github.com/zunaito/rpls`
+`;install https://github.com/zunaito/nemes`
