@@ -72,8 +72,8 @@ local function time()
             for i = 1,3 do
                 update(i)
 
-                local st = loop_points[heads[i]][1] + play_mar
-                local en = loop_points[heads[i]][2] - play_mar
+                local st = loop_points[heads[i]][1]-- + play_mar
+                local en = loop_points[heads[i]][2]-- - play_mar
                 local rate = get_rate(i)
                 local rev = rate < 0
 
@@ -84,7 +84,7 @@ local function time()
 
             for i = 1,2 do 
                 local st = loop_points[heads[i]][1]
-                local en = loop_points[heads[i]][2] - play_mar
+                local en = loop_points[heads[i]][2]
                 local rate = get_rate(i)
                 local rev = rate < 0
                 local div = math.abs(rate) > 1
@@ -164,7 +164,7 @@ local function rechead()
         }
         params:add{
             type = 'control', id = 'input pan', 
-            controlspec = cs.def{ min = -1, max = 1, default = 0.5 },
+            controlspec = cs.def{ min = -1, max = 1, default = 0.7 },
             action = function(v) pan = v; update() end
         }
     end
@@ -238,6 +238,10 @@ function init()
     params:set('rate 2', 1)
     params:set('level 2', 0.5)
     params:read()
+
+    softcut.pan(2, -1)
+    softcut.pan(1, 1)
+
 
     params:bang()
 end
