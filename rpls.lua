@@ -219,11 +219,59 @@ local function playhead(idx)
     end
 end
 
+local function filter()
+    local pre = 'hp'
+    local post = 'lp'
+    local both = { pre, post }
+    local defaults = { hp = 0, lp = 1 }
+
+    for i = 1,2 do
+        stereo('post_filter_dry', i, 0)
+        stereo('post_filter_'..post, i, 1)
+    end
+    stereo('pre_filter_fc_mod', 3, 0)
+    stereo('pre_filter_dry', 3, 0)
+    stereo('pre_filter_'..pre, 3, 1)
+
+    for i,filter in ipairs(both) do
+        local pre = i==1
+
+        params:add {
+            type = 'control', id = filter,
+            controlspec = cs.def{ default = defaults[filter], quantum = 1/100/2, step = 0 },
+            action = (
+                pre and (
+                    function(v) 
+                        stereo('pre_filter_fc', 3, util.linexp(0, 1, 2, 20000, v)) 
+                    end
+                ) or (
+                    function(v) 
+                        for i = 1,2 do
+                            stereo('post_filter_fc', i, util.linexp(0, 1, 2, 20000, v)) 
+                        end
+                    end
+                )
+            )
+        }
+    end
+    params:add {
+        type = 'control', id = 'res',
+        controlspec = cs.def{ default = 0.4 },
+        action = function(v)
+            for i = 1,2 do
+                stereo('post_filter_rq', i, util.linexp(0, 1, 0.01, 20, 1 - v))
+            end
+            stereo('pre_filter_rq', 3, util.linexp(0, 1, 0.01, 20, 1 - v))
+        end
+    }
+end
+
 playhead(1)
 playhead(2)
 rechead()
 globals()
 time()
+filter()
 
 function init()
     params:set('rate 1', 3)
