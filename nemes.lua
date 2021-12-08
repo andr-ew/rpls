@@ -144,7 +144,7 @@ local rates = {
     1, 1, 1,
     all = 1,
     update = function(s, i)
-        stereo('rate', idx, s[i] * s.all)
+        stereo('rate', i, s[i] * s.all)
     end,
     update_all = function(s)
         for i = 1,3 do
@@ -159,6 +159,15 @@ local function all()
         controlspec = cs.def{ min = -1, max = 1, default = 0 },
         action = function(v)
             rates.all = 2^v; rates:update_all()
+        end
+    }
+    params:add{
+        type='control', id ='slew',
+        controlspec = cs.def{ min = 0, max = 0.5, default = 0.1 },
+        action = function(v)
+            for i = 1,6 do
+                softcut.rate_slew_time(i, v)
+            end
         end
     }
 end
@@ -203,11 +212,23 @@ local function playhead(idx)
     do
         local names = { '-2x', '-1x', '-1/2x', '1/2x', '1x', '2x' }
         local vals = { -2, -1, -0.5, 0.5, 1, 2 }
+        local course = 1
+        local fine = 0
+        local update = function()
+            rates[idx] = (course * 2^fine); rates:update(idx)
+        end
         params:add{
             type='option', id = 'rate '..idx,
             options = names, default = 5,
             action = function(v) 
-                rates[idx] = vals[v]; rates:update(idx)
+                course = vals[v]; update()
+            end
+        }
+        params:add{
+            type='control', id='fine '..idx,
+            controlspec = cs.def{ min = -1, max = 1, default = 0 },
+            action = function(v)
+                fine = v; update()
             end
         }
     end
