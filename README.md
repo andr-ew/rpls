@@ -7,3 +7,7 @@ tidal repitch echo
 
 ## install
 `;install https://github.com/andr-ew/rpls`
+
+## divergence
+
+https://github.com/zunaito/nemes
