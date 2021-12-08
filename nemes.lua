@@ -133,6 +133,36 @@ local function rechead()
     }
 end
 
+local rates = { 1, 1, 1 }
+local function update_all_rates()
+
+end
+local function update_rate(i)
+end
+
+local rates = {
+    1, 1, 1,
+    all = 1,
+    update = function(s, i)
+        stereo('rate', idx, s[i] * s.all)
+    end,
+    update_all = function(s)
+        for i = 1,3 do
+            s:update(i)
+        end
+    end
+}
+
+local function all()
+    params:add{
+        type='control', id='all fine',
+        controlspec = cs.def{ min = -1, max = 1, default = 0 },
+        action = function(v)
+            rates.all = 2^v; rates:update_all()
+        end
+    }
+end
+
 local function playhead(idx)
     local off = (idx - 1) * 2
 
@@ -172,21 +202,22 @@ local function playhead(idx)
     end
     do
         local names = { '-2x', '-1x', '-1/2x', '1/2x', '1x', '2x' }
-        local rates = { -2, -1, -0.5, 0.5, 1, 2 }
+        local vals = { -2, -1, -0.5, 0.5, 1, 2 }
         params:add{
             type='option', id = 'rate '..idx,
             options = names, default = 5,
-            action = function(v)
-                stereo('rate', idx, rates[v])
+            action = function(v) 
+                rates[idx] = vals[v]; rates:update(idx)
             end
         }
     end
 end
 
 time()
+all()
+rechead()
 playhead(1)
 playhead(2)
-rechead()
 
 function init()
     params:set('rate 1', 4)
