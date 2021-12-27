@@ -25,24 +25,45 @@ Pages[1] = function()
         for i = 1,2 do
             _vol[i]{
                 n = 1+i, x = e[1+i].x, y = e[1+i].y,
-                label = 'vol',
+                label = 'vol '..i,
                 state = of.param('vol '..i),
                 controlspec = of.controlspec('vol '..i),
             }
         end
     end
 end
-
---TODO: new rates
--- r: 0, 1, 2, 3, 4
--- 1/2: (+/-) 1/2, 1, 2, 3, 4, 5
 Altpages[1] = function()
     return function()
     end
 end
 
 Pages[2] = function()
+    local _raterec = Text.enc.number()
+    local _rateplay = { Text.enc.number(), Text.enc.number() }
+
     return function()
+        _raterec{
+            n = 1, x = e[1].x, y = e[1].y,
+            label = 'rate rec', 
+            state = of.param('rate rec'),
+            min = 1, inc = 1,
+            max = #params:lookup_param('rate rec').options,
+            formatter = function(v)
+                return params:lookup_param('rate rec').options[v]
+            end,
+        }
+        for i = 1,2 do
+            _rateplay[i]{
+                n = 1+i, x = e[1+i].x, y = e[1+i].y,
+                label = 'rate '..i,
+                state = of.param('rate '..i),
+                min = 1, inc = 1,
+                max = #params:lookup_param('rate '..i).options,
+                formatter = function(v)
+                    return params:lookup_param('rate '..i).options[v]
+                end,
+            }
+        end
     end
 end
 Altpages[2] = function()
@@ -51,7 +72,29 @@ Altpages[2] = function()
 end
 
 Pages[3] = function()
+    local _q = Text.enc.control()
+    local _hp = Text.enc.control()
+    local _lp = Text.enc.control()
+
     return function()
+        _q{
+            n = 1, x = e[1].x, y = e[1].y,
+            label = 'q', 
+            state = of.param('q'),
+            controlspec = of.controlspec('q'),
+        }
+        _hp{
+            n = 2, x = e[2].x, y = e[2].y,
+            label = 'hp', 
+            state = of.param('hp'),
+            controlspec = of.controlspec('hp'),
+        }
+        _lp{
+            n = 3, x = e[3].x, y = e[3].y,
+            label = 'lp', 
+            state = of.param('lp'),
+            controlspec = of.controlspec('lp'),
+        }
     end
 end
 Altpages[3] = function()

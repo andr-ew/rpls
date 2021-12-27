@@ -16,10 +16,23 @@ local function stereo(command, pair, ...)
     end
 end
 
-local rates = { -2, -1, -0.5, 0.5, 1, 2 }
+local rates = {
+    play = {
+        k = { 
+            '-5x', '-4x', '-3x', '-2x', '-1x', '-1/2x', '1/2x', '1x', '2x', '3x', '4x', '5x' 
+        },
+        v = { -5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5 }
+    },
+    rec = {
+        k = { '0x', '1x', '2x', '3x', '4x' },
+        v = { 0, 1, 2, 3, 4 }
+    }
+}
+
 local function get_rate(idx)
-    local id = 'rate '..idx
-    return idx==3 and 1 or rates[params:get(id)]
+    local id = idx==3 and 'rate rec' or 'rate '..idx
+    local v = idx==3 and rates.rec.v or rates.play.v
+    return v[params:get(id)]
 end
 
 local function time()
@@ -49,7 +62,8 @@ local function time()
         stereo('loop_end', i, buf_time)
     end
     
-    local tick = { 10, 10, 10 }
+    local tick = { 100, 100, 100 }
+    local tick_all = 100
     local quant = 0.001
 
     local function res(i)
@@ -67,17 +81,18 @@ local function time()
         for i = 1,3 do
             res(i)
         end
+        tick_all = 0
         table.insert(heads, 1, table.remove(heads, #heads))
     end
     
     clock.run(function()
         while true do
-            if tick[3] >= time then
+            if tick_all >= time then
                 resall()
             else
                 for i = 1,3 do
                     local rate = get_rate(i)
-                    local div = math.abs(rate)
+                    local div = rate==0 and 0.5 or math.abs(rate)
 
                     if tick[i] >= time/div then res(i) end
                 end
@@ -85,6 +100,7 @@ local function time()
             
             clock.sleep(quant)
             for i = 1,3 do tick[i] = tick[i] + quant end
+            tick_all = tick_all + quant
         end
     end)
 end
@@ -158,12 +174,20 @@ local function rechead()
             action = function(v) pan = v; update() end
         }
     end
+    --TODO: feedback per head
     params:add{
         type = 'control', id = 'feedback', controlspec = cs.def{ default = 0.5 },
         action = function(v)
             softcut.level_cut_cut(1 + off, 2 + off, v)
             softcut.level_cut_cut(2 + off, 1 + off, v)
             -- stereo('pre_level', idx, v)
+        end
+    }
+    params:add{
+        type='option', id = 'rate rec',
+        options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
+        action = function(i)
+            stereo('rate', idx, rates.rec.v[i])
         end
     }
 end
@@ -205,16 +229,13 @@ local function playhead(idx)
             action = function(v) pan = v; update() end
         }
     end
-    do
-        local names = { '-2x', '-1x', '-1/2x', '1/2x', '1x', '2x' }
-        params:add{
-            type='option', id = 'rate '..idx,
-            options = names, default = 5,
-            action = function(v)
-                stereo('rate', idx, rates[v])
-            end
-        }
-    end
+    params:add{
+        type='option', id = 'rate '..idx,
+        options = rates.play.k, default = tab.key(rates.play.k, '1x'),
+        action = function(i)
+            stereo('rate', idx, rates.play.v[i])
+        end
+    }
 end
 
 local function filter()
@@ -253,7 +274,7 @@ local function filter()
         }
     end
     params:add {
-        type = 'control', id = 'res',
+        type = 'control', id = 'q',
         controlspec = cs.def{ default = 0.4 },
         action = function(v)
             for i = 1,2 do
@@ -264,6 +285,17 @@ local function filter()
     }
 end
 
+-- this causes some crazy feedback stuff & I'm not attatched to it, so i'll leave it out
+-- params:add{
+--     type='control', id ='rate slew',
+--     controlspec = cs.def{ min = 0, max = 0.5, default = 0.1 },
+--     action = function(v)
+--         for i = 1,6 do
+--             softcut.rate_slew_time(i, v)
+--         end
+--     end
+-- }
+
 playhead(1)
 playhead(2)
 rechead()
@@ -271,8 +303,8 @@ globals()
 time()
 filter()
     
-params:set('rate 1', 3)
-params:set('rate 2', 1)
+params:set('rate 1', tab.key(rates.play.k, '2x'))
+params:set('rate 2', tab.key(rates.play.k, '-1/2x'))
 params:set('level 2', 0.5)
 
 local function post_read()
