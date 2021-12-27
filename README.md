@@ -6,7 +6,7 @@ phonetic fracture prism
 - **E1-E3**: various
 - **K1**: alt
 
-time flows thru 3 pools
+time flows thru 3 pools.
 the first reads, 
 the others write.
 set the rate & size of 
