@@ -21,7 +21,7 @@
 --
 -- ( ok it's a bit like a multi-tap 
 -- delay, but each tap plays 
--- back at a different pitch )
+-- back at a different rate )
 
 nest = include 'lib/nest/core'
 Key, Enc = include 'lib/nest/norns'
