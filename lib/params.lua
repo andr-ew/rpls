@@ -37,21 +37,21 @@ end
 
 local function time()
     local loop_points = {}
-    for i = 1,3 do loop_points[i] = { 0, 0 } end
+    for i = 1,4 do loop_points[i] = { 0, 0 } end
 
     local heads = { 1, 2, 3 }
     local time = 1
 
     params:add{
         type='control', id='time',
-        controlspec = cs.def{ min = 0.001, max = 2*3, default = 4 },
+        controlspec = cs.def{ min = 0.001, max = 2*4, default = 4 },
         action = function(v)
-            time = util.round(v/3, 0.001)
+            time = util.round(v/4, 0.001)
 
             local mar = (0.5*2) + (5*3)
-            for i = 1,3 do
+            for i = 1,4 do
                 loop_points[i][1] = (i - 1) * (mar)
-                loop_points[i][2] = (i- 1) * (mar) + time
+                loop_points[i][2] = (i - 1) * (mar) + time
             end
         end
     }
@@ -79,10 +79,11 @@ local function time()
 
     local function resall()
         for i = 1,3 do
+            heads[i] = heads[i]%4 + 1
             res(i)
         end
         tick_all = 0
-        table.insert(heads, 1, table.remove(heads, #heads))
+        -- table.insert(heads, 1, table.remove(heads, #heads))
     end
     
     clock.run(function()
