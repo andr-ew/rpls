@@ -46,7 +46,7 @@ local function time()
         type='control', id='time',
         controlspec = cs.def{ min = 0.001, max = 2*3, default = 4 },
         action = function(v)
-            time = v/3
+            time = util.round(v/3, 0.001)
 
             local mar = (0.5*2) + (5*3)
             for i = 1,3 do
@@ -67,8 +67,8 @@ local function time()
     local quant = 0.001
 
     local function res(i)
-        local st = loop_points[heads[i]][1]-- + play_mar
-        local en = loop_points[heads[i]][2]-- - play_mar
+        local st = loop_points[heads[i]][1] --- 0.1
+        local en = loop_points[heads[i]][2] + 0.25
         local rate = get_rate(i)
         local rev = rate < 0
 
@@ -111,8 +111,13 @@ local function globals()
         type='control', id='fade',
         controlspec = cs.def { default = 0.0025, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
         action = function(v)
-            for i = 1,6 do
+            for i = 1,4 do
                 softcut.fade_time(i, v)
+                play_mar = v
+                rec_mar = v*2
+            end
+            for i = 5,6 do
+                softcut.fade_time(i, v*2)
                 play_mar = v
                 rec_mar = v*2
             end
