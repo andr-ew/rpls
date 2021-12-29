@@ -78,11 +78,11 @@ local function time()
     end
 
     local function resall()
+        table.insert(heads, 1, table.remove(heads, #heads))
         for i = 1,3 do
             res(i)
         end
         tick_all = 0
-        table.insert(heads, 1, table.remove(heads, #heads))
     end
     
     clock.run(function()
