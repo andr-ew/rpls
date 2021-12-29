@@ -17,6 +17,8 @@ concentric prisms.
 delay, but each tap plays 
 back at a different rate )
 
+a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliterate)
+
 ## requirements
 - norns (210927)
 - audio input
