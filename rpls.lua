@@ -28,16 +28,15 @@ Key, Enc = include 'lib/nest/norns'
 Text = include 'lib/nest/text'
 of = include 'lib/nest/util/of'
 
-post_read = include 'lib/params'
+post_init = include 'lib/params'
 x, y, redraw_graphics = include 'lib/gfx'
 include 'lib/ui'
 
 function init()
     params:read()
-
-    post_read()
-
     params:bang()
+
+    post_init()
 end
 
 function cleanup()

@@ -321,9 +321,9 @@ params:set('rate 1', tab.key(rates[1].k, '2x'))
 params:set('rate 2', tab.key(rates[2].k, '-1/2x'))
 params:set('level 2', 0.5)
 
-local function post_read()
+local function post_init()
     softcut.pan(2, -1)
     softcut.pan(1, 1)
 end
 
-return post_read
+return post_init
