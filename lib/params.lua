@@ -17,7 +17,13 @@ local function stereo(command, pair, ...)
 end
 
 local rates = {
-    play = {
+    [1] = {
+        k = { 
+            '1/2x', '1x', '2x', '3x', '4x', '5x'
+        },
+        v = { 0.5, 1, 2, 3, 4, 5 }
+    },
+    [2] = {
         k = { 
             '-5x', '-4x', '-3x', '-2x', '-1x', '-1/2x', '1/2x', '1x', '2x', '3x', '4x', '5x' 
         },
@@ -30,9 +36,8 @@ local rates = {
 }
 
 local function get_rate(idx)
-    local id = idx==3 and 'rate rec' or 'rate '..idx
-    local v = idx==3 and rates.rec.v or rates.play.v
-    return v[params:get(id)]
+    local k = (idx==3) and 'rec' or idx
+    return rates[k].v[params:get('rate '..k)]
 end
 
 local function time()
@@ -90,7 +95,7 @@ local function time()
             if tick_all >= time then
                 resall()
             else
-                for i = 1,3 do
+                for i = 1,2 do
                     if tick[i] >= time then res(i) end
                 end
             end
@@ -117,7 +122,7 @@ local function globals()
                 rec_mar = v*2
             end
             for i = 5,6 do
-                softcut.fade_time(i, v*2)
+                softcut.fade_time(i, v) --*2
                 play_mar = v
                 rec_mar = v*2
             end
@@ -238,9 +243,9 @@ local function playhead(idx)
     end
     params:add{
         type='option', id = 'rate '..idx,
-        options = rates.play.k, default = tab.key(rates.play.k, '1x'),
+        options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
         action = function(i)
-            stereo('rate', idx, rates.play.v[i])
+            stereo('rate', idx, rates[idx].v[i])
         end
     }
 end
@@ -309,8 +314,8 @@ globals()
 time()
 filter()
     
-params:set('rate 1', tab.key(rates.play.k, '2x'))
-params:set('rate 2', tab.key(rates.play.k, '-1/2x'))
+params:set('rate 1', tab.key(rates[1].k, '2x'))
+params:set('rate 2', tab.key(rates[2].k, '-1/2x'))
 params:set('level 2', 0.5)
 
 local function post_read()
