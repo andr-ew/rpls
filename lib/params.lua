@@ -91,15 +91,16 @@ local function time()
                 resall()
             else
                 for i = 1,3 do
-                    local rate = get_rate(i)
-                    local div = rate==0 and 0.5 or math.abs(rate)
-
-                    if tick[i] >= time/div then res(i) end
+                    if tick[i] >= time then res(i) end
                 end
             end
             
             clock.sleep(quant)
-            for i = 1,3 do tick[i] = tick[i] + quant end
+
+            for i = 1,3 do 
+                local rate = math.abs(get_rate(i))
+                tick[i] = tick[i] + (quant * rate)
+            end
             tick_all = tick_all + quant
         end
     end)
@@ -214,6 +215,7 @@ local function playhead(idx)
         local lvl = 1
         local update = function()
             local p, v = pan, lvl
+            if idx==1 then p = -p end
             softcut.level(off + 1, v * ((p > 0) and 1 - p or 1))
             softcut.level(off + 2, v * ((p < 0) and 1 + p or 1))
         end
@@ -285,16 +287,15 @@ local function filter()
     }
 end
 
--- this causes some crazy feedback stuff & I'm not attatched to it, so i'll leave it out
--- params:add{
---     type='control', id ='rate slew',
---     controlspec = cs.def{ min = 0, max = 0.5, default = 0.1 },
---     action = function(v)
---         for i = 1,6 do
---             softcut.rate_slew_time(i, v)
---         end
---     end
--- }
+params:add{
+    type='control', id ='rate slew',
+    controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
+    action = function(v)
+        for i = 1,6 do
+            softcut.rate_slew_time(i, v)
+        end
+    end
+}
 
 playhead(1)
 playhead(2)
