@@ -16,6 +16,69 @@ local function stereo(command, pair, ...)
     end
 end
 
+for idx = 1,3 do
+    stereo('enable', idx, 1)
+    stereo('level_slew_time', idx, 0.1)
+    stereo('recpre_slew_time', idx, 0.1)
+
+    local off = (idx - 1) * 2
+    softcut.pan(off + 1, -1)
+    softcut.pan(off + 2, 1)
+    softcut.buffer(off + 1, 1)
+    softcut.buffer(off + 2, 2)
+end
+do
+    local idx = 3
+    local off = (idx - 1) * 2
+
+    stereo('loop', idx, 0)
+    stereo('rec', idx, 1)
+    stereo('play', idx, 1)
+    stereo('level', idx, 0)
+    stereo('pre_level', idx, 0)
+    stereo('rec_level', idx, 1)
+    -- stereo('fade_time', idx, rec_fade)
+
+end
+for idx = 1,2 do
+    stereo('rec', idx, 0)
+    stereo('play', idx, 1)
+    stereo('loop', idx, 0)
+    stereo('level_input_cut', 1, idx, 0)
+    stereo('level_input_cut', 2, idx, 0)
+    stereo('pre_level', idx, 1)
+    -- stereo('fade_time', idx, play_mar)
+
+    -- stereo('post_filter_dry', idx, 0)
+    -- stereo('rec', idx, 1)
+    -- stereo('pre_level', idx, 0.75)
+end
+
+params:add_separator('mix')
+for idx = 1,2 do
+    local off = (idx - 1) * 2
+
+    local pan = 0
+    local lvl = 1
+    local update = function()
+        local p, v = pan, lvl
+        if idx==1 then p = -p end
+        softcut.level(off + 1, v * ((p > 0) and 1 - p or 1))
+        softcut.level(off + 2, v * ((p < 0) and 1 + p or 1))
+    end
+
+    params:add{
+        type='control', id = 'vol '..idx,
+        controlspec = cs.def { default = 1 },
+        action = function(v) lvl = v; update() end
+    }
+    params:add{
+        type='control', id = 'pan '..idx,
+        controlspec = cs.def { min = -1, max = 1, default = 0 },
+        action = function(v) pan = v; update() end
+    }
+end
+
 local rates = {
     [1] = {
         k = { 
@@ -35,12 +98,40 @@ local rates = {
     }
 }
 
+params:add_separator('rate')
+params:add{
+    type='option', id = 'rate rec',
+    options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
+    action = function(i)
+        stereo('rate', 3, rates.rec.v[i])
+    end
+}
+for idx = 1,2 do
+    params:add{
+        type='option', id = 'rate '..idx,
+        options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
+        action = function(i)
+            stereo('rate', idx, rates[idx].v[i])
+        end
+    }
+end
+params:add{
+    type='control', id ='rate slew',
+    controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
+    action = function(v)
+        for i = 1,6 do
+            softcut.rate_slew_time(i, v)
+        end
+    end
+}
+
 local function get_rate(idx)
     local k = (idx==3) and 'rec' or idx
     return rates[k].v[params:get('rate '..k)]
 end
 
-local function time()
+params:add_separator('clock')
+do
     local loop_points = {}
     for i = 1,3 do loop_points[i] = { 0, 0 } end
 
@@ -111,81 +202,29 @@ local function time()
     end)
 end
 
-local function globals()
-    params:add{
-        type='control', id='fade',
-        controlspec = cs.def { default = 0.0025, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
-        action = function(v)
-            for i = 1,4 do
-                softcut.fade_time(i, v)
-                play_mar = v
-                rec_mar = v*2
-            end
-            for i = 5,6 do
-                softcut.fade_time(i, v) --*2
-                play_mar = v
-                rec_mar = v*2
-            end
+params:add{
+    type='control', id='fade',
+    controlspec = cs.def { default = 0.0025, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
+    action = function(v)
+        for i = 1,4 do
+            softcut.fade_time(i, v)
+            play_mar = v
+            rec_mar = v*2
         end
-    }
-end
-
-local function head(idx)
-    stereo('enable', idx, 1)
-    stereo('level_slew_time', idx, 0.1)
-    stereo('recpre_slew_time', idx, 0.1)
-
-    local off = (idx - 1) * 2
-    softcut.pan(off + 1, -1)
-    softcut.pan(off + 2, 1)
-    softcut.buffer(off + 1, 1)
-    softcut.buffer(off + 2, 2)
-end
-
-local function rechead()
-    idx = 3
-    local off = (idx - 1) * 2
-
-    head(idx)
-
-    stereo('loop', idx, 0)
-    stereo('rec', idx, 1)
-    stereo('play', idx, 1)
-    stereo('level', idx, 0)
-    stereo('pre_level', idx, 0)
-    stereo('rec_level', idx, 1)
-    -- stereo('fade_time', idx, rec_fade)
-
-    do
-        local route = 'stereo'
-        local pan = 0
-        local function update()
-            local v, p = 1, pan
-
-            if route == 'stereo' then
-                softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
-                softcut.level_input_cut(2, off + 1, 0)
-                softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
-                softcut.level_input_cut(1, off + 2, 0)
-            elseif route == 'mono' then
-                softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
-                softcut.level_input_cut(1, off + 2, v * ((p < 0) and 1 + p or 1))
-                softcut.level_input_cut(2, off + 1, v * ((p > 0) and 1 - p or 1))
-                softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
-            end
+        for i = 5,6 do
+            softcut.fade_time(i, v) --*2
+            play_mar = v
+            rec_mar = v*2
         end
-        local ir_op = { 'stereo', 'mono' } 
-        params:add{
-            type = 'option', id = 'input routing', options = ir_op,
-            action = function(v) route = ir_op[v]; update() end
-        }
-        params:add{
-            type = 'control', id = 'input pan', 
-            controlspec = cs.def{ min = -1, max = 1, default = 0.7 },
-            action = function(v) pan = v; update() end
-        }
     end
-    --TODO: feedback per head
+}
+
+params:add_separator('feedback')
+--TODO: feedback per head
+do
+    local idx = 3
+    local off = (idx - 1) * 2
+
     params:add{
         type = 'control', id = 'feedback', controlspec = cs.def{ default = 0.5 },
         action = function(v)
@@ -194,63 +233,10 @@ local function rechead()
             -- stereo('pre_level', idx, v)
         end
     }
-    params:add{
-        type='option', id = 'rate rec',
-        options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
-        action = function(i)
-            stereo('rate', idx, rates.rec.v[i])
-        end
-    }
 end
 
-local function playhead(idx)
-    local off = (idx - 1) * 2
-
-    head(idx)
-    
-    stereo('rec', idx, 0)
-    stereo('play', idx, 1)
-    stereo('loop', idx, 0)
-    stereo('level_input_cut', 1, idx, 0)
-    stereo('level_input_cut', 2, idx, 0)
-    stereo('pre_level', idx, 1)
-    -- stereo('fade_time', idx, play_mar)
-
-    -- stereo('post_filter_dry', idx, 0)
-    -- stereo('rec', idx, 1)
-    -- stereo('pre_level', idx, 0.75)
-
-    do
-        local pan = 0
-        local lvl = 1
-        local update = function()
-            local p, v = pan, lvl
-            if idx==1 then p = -p end
-            softcut.level(off + 1, v * ((p > 0) and 1 - p or 1))
-            softcut.level(off + 2, v * ((p < 0) and 1 + p or 1))
-        end
-
-        params:add{
-            type='control', id = 'vol '..idx,
-            controlspec = cs.def { default = 1 },
-            action = function(v) lvl = v; update() end
-        }
-        params:add{
-            type='control', id = 'pan '..idx,
-            controlspec = cs.def { min = -1, max = 1, default = 0 },
-            action = function(v) pan = v; update() end
-        }
-    end
-    params:add{
-        type='option', id = 'rate '..idx,
-        options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
-        action = function(i)
-            stereo('rate', idx, rates[idx].v[i])
-        end
-    }
-end
-
-local function filter()
+params:add_separator('filter')
+do
     local pre = 'hp'
     local post = 'lp'
     local both = { pre, post }
@@ -296,24 +282,41 @@ local function filter()
         end
     }
 end
+    
+params:add_separator('input')
+do
+    local idx = 3
+    local off = (idx - 1) * 2
 
-params:add{
-    type='control', id ='rate slew',
-    controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
-    action = function(v)
-        for i = 1,6 do
-            softcut.rate_slew_time(i, v)
+    local route = 'stereo'
+    local pan = 0
+    local function update()
+        local v, p = 1, pan
+
+        if route == 'stereo' then
+            softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
+            softcut.level_input_cut(2, off + 1, 0)
+            softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
+            softcut.level_input_cut(1, off + 2, 0)
+        elseif route == 'mono' then
+            softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
+            softcut.level_input_cut(1, off + 2, v * ((p < 0) and 1 + p or 1))
+            softcut.level_input_cut(2, off + 1, v * ((p > 0) and 1 - p or 1))
+            softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
         end
     end
-}
+    local ir_op = { 'stereo', 'mono' } 
+    params:add{
+        type = 'option', id = 'input routing', options = ir_op,
+        action = function(v) route = ir_op[v]; update() end
+    }
+    params:add{
+        type = 'control', id = 'input pan', 
+        controlspec = cs.def{ min = -1, max = 1, default = 0.7 },
+        action = function(v) pan = v; update() end
+    }
+end
 
-playhead(1)
-playhead(2)
-rechead()
-globals()
-time()
-filter()
-    
 params:set('rate 1', tab.key(rates[1].k, '2x'))
 params:set('rate 2', tab.key(rates[2].k, '-1/2x'))
 params:set('level 2', 0.5)
