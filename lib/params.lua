@@ -91,7 +91,7 @@ for idx = 1,2 do
     }
 end
 params:add{
-    type='control', id ='rate slew',
+    type='control', id ='slew',
     controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
     action = function(v)
         for i = 1,6 do
@@ -176,10 +176,9 @@ do
         end
     end)
 end
-
 params:add{
     type='control', id='fade',
-    controlspec = cs.def { default = 0.0025, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
+    controlspec = cs.def { default = 0.07, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
     action = function(v)
         for i = 1,4 do
             softcut.fade_time(i, v)

@@ -4,36 +4,45 @@ local e = {
     { x = x[2], y = y[3] },
 }
 local k = {
-    { x = x[1], y = y[3] },
+    {  },
+    { x = x[1], y = y[4] },
     { x = x[2], y = y[4] },
 }
 
 local Pages = {}
 local Altpages = {}
 
+local function ctl(_comp, i, id, lab)
+    lab = lab or id
+    _comp{
+        n = i, x = e[i].x, y = e[i].y,
+        label = lab, 
+        state = of.param(id),
+        controlspec = of.controlspec(id),
+    }
+end
+
 Pages[1] = function()
     local _time = Text.enc.control()
     local _vol = { Text.enc.control(), Text.enc.control() }
 
     return function()
-        _time{
-            n = 1, x = e[1].x, y = e[1].y,
-            label = 'time', 
-            state = of.param('time'),
-            controlspec = of.controlspec('time'),
-        }
+        ctl(_time, 1, 'time')
+
         for i = 1,2 do
-            _vol[i]{
-                n = 1+i, x = e[1+i].x, y = e[1+i].y,
-                label = 'vol '..i,
-                state = of.param('vol '..i),
-                controlspec = of.controlspec('vol '..i),
-            }
+            ctl(_vol[i], i+1, 'vol '..i)
         end
     end
 end
 Altpages[1] = function()
+    local _volrec = Text.enc.control()
+    local _fade = Text.enc.control()
+    local _slew = Text.enc.control()
+
     return function()
+        ctl(_volrec, 1, 'vol rec')
+        ctl(_fade, 2, 'fade')
+        ctl(_slew, 3, 'slew')
     end
 end
 
@@ -67,7 +76,14 @@ Pages[2] = function()
     end
 end
 Altpages[2] = function()
+    local _e1 = Text.enc.control()
+    local _e2 = Text.enc.control()
+    local _e3 = Text.enc.control()
+
     return function()
+        ctl(_e1, 1, 'rec -> rec')
+        ctl(_e2, 2, '1 -> rec')
+        ctl(_e3, 3, '2 -> rec')
     end
 end
 
@@ -77,28 +93,26 @@ Pages[3] = function()
     local _lp = Text.enc.control()
 
     return function()
-        _q{
-            n = 1, x = e[1].x, y = e[1].y,
-            label = 'q', 
-            state = of.param('q'),
-            controlspec = of.controlspec('q'),
-        }
-        _hp{
-            n = 2, x = e[2].x, y = e[2].y,
-            label = 'hp', 
-            state = of.param('hp'),
-            controlspec = of.controlspec('hp'),
-        }
-        _lp{
-            n = 3, x = e[3].x, y = e[3].y,
-            label = 'lp', 
-            state = of.param('lp'),
-            controlspec = of.controlspec('lp'),
-        }
+        ctl(_q, 1, 'q')
+        ctl(_hp, 2, 'hp')
+        ctl(_lp, 3, 'lp')
     end
 end
 Altpages[3] = function()
+    local _e1 = Text.enc.control()
+    local _e2 = Text.enc.control()
+    local _e3 = Text.enc.control()
+    local _verbon = Text.key.toggle()
+
     return function()
+        ctl(_e1, 1, 'rev_return_level', 'verb lvl')
+        ctl(_e2, 2, 'rev_cut_input', 'verb cut')
+        ctl(_e3, 3, 'rev_monitor_input', 'verb mon')
+
+        _verbon{
+            n = 2, x = k[2].x, y = k[2].y, label = 'verb on',
+            state = { params:get('reverb') - 1, function(v) params:set('reverb', v+1) end }
+        }
     end
 end
 
