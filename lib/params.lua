@@ -34,7 +34,7 @@ do
     stereo('loop', idx, 0)
     stereo('rec', idx, 1)
     stereo('play', idx, 1)
-    stereo('level', idx, 0)
+    -- stereo('level', idx, 0)
     stereo('pre_level', idx, 0)
     stereo('rec_level', idx, 1)
     -- stereo('fade_time', idx, rec_fade)
@@ -55,8 +55,9 @@ for idx = 1,2 do
 end
 
 params:add_separator('mix')
-for idx = 1,2 do
+for idx = 1,3 do
     local off = (idx - 1) * 2
+    local name = idx==3 and 'rec' or idx
 
     local pan = 0
     local lvl = 1
@@ -68,12 +69,12 @@ for idx = 1,2 do
     end
 
     params:add{
-        type='control', id = 'vol '..idx,
+        type='control', id = 'vol '..name,
         controlspec = cs.def { default = 1 },
         action = function(v) lvl = v; update() end
     }
     params:add{
-        type='control', id = 'pan '..idx,
+        type='control', id = 'pan '..name,
         controlspec = cs.def { min = -1, max = 1, default = 0 },
         action = function(v) pan = v; update() end
     }
@@ -319,7 +320,8 @@ end
 
 params:set('rate 1', tab.key(rates[1].k, '2x'))
 params:set('rate 2', tab.key(rates[2].k, '-1/2x'))
-params:set('level 2', 0.5)
+params:set('vol 1', 0.5)
+params:set('vol rec', 0)
 
 local function post_init()
     softcut.pan(2, -1)
