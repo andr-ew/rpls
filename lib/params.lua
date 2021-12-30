@@ -54,32 +54,6 @@ for idx = 1,2 do
     -- stereo('pre_level', idx, 0.75)
 end
 
-params:add_separator('mix')
-for idx = 1,3 do
-    local off = (idx - 1) * 2
-    local name = idx==3 and 'rec' or idx
-
-    local pan = 0
-    local lvl = 1
-    local update = function()
-        local p, v = pan, lvl
-        if idx==1 then p = -p end
-        softcut.level(off + 1, v * ((p > 0) and 1 - p or 1))
-        softcut.level(off + 2, v * ((p < 0) and 1 + p or 1))
-    end
-
-    params:add{
-        type='control', id = 'vol '..name,
-        controlspec = cs.def { default = 1 },
-        action = function(v) lvl = v; update() end
-    }
-    params:add{
-        type='control', id = 'pan '..name,
-        controlspec = cs.def { min = -1, max = 1, default = 0 },
-        action = function(v) pan = v; update() end
-    }
-end
-
 local rates = {
     [1] = {
         k = { 
@@ -221,18 +195,75 @@ params:add{
 }
 
 params:add_separator('feedback')
---TODO: feedback per head
+for _,idx in pairs{ 3, 1, 2 } do
+    local off = (idx - 1) * 2
+    local name = idx==3 and 'rec' or idx
+
+    params:add{
+        type = 'control', id = name..' -> rec', controlspec = cs.def{ default = 0 },
+        action = function(v)
+            softcut.level_cut_cut(1 + off, 2 + 4, v)
+            softcut.level_cut_cut(2 + off, 1 + 4, v)
+            -- stereo('pre_level', idx, v)
+        end
+    }
+end
+
+params:add_separator('mix')
+for idx = 1,3 do
+    local off = (idx - 1) * 2
+    local name = idx==3 and 'rec' or idx
+
+    local pan = 0
+    local lvl = 1
+    local update = function()
+        local p, v = pan, lvl
+        if idx==1 then p = -p end
+        softcut.level(off + 1, v * ((p > 0) and 1 - p or 1))
+        softcut.level(off + 2, v * ((p < 0) and 1 + p or 1))
+    end
+
+    params:add{
+        type='control', id = 'vol '..name,
+        controlspec = cs.def { default = 1 },
+        action = function(v) lvl = v; update() end
+    }
+    params:add{
+        type='control', id = 'pan '..name,
+        controlspec = cs.def { min = -1, max = 1, default = 0 },
+        action = function(v) pan = v; update() end
+    }
+end
 do
     local idx = 3
     local off = (idx - 1) * 2
 
-    params:add{
-        type = 'control', id = 'feedback', controlspec = cs.def{ default = 0.5 },
-        action = function(v)
-            softcut.level_cut_cut(1 + off, 2 + off, v)
-            softcut.level_cut_cut(2 + off, 1 + off, v)
-            -- stereo('pre_level', idx, v)
+    local route = 'stereo'
+    local pan = 0
+    local function update()
+        local v, p = 1, pan
+
+        if route == 'stereo' then
+            softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
+            softcut.level_input_cut(2, off + 1, 0)
+            softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
+            softcut.level_input_cut(1, off + 2, 0)
+        elseif route == 'mono' then
+            softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
+            softcut.level_input_cut(1, off + 2, v * ((p < 0) and 1 + p or 1))
+            softcut.level_input_cut(2, off + 1, v * ((p > 0) and 1 - p or 1))
+            softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
         end
+    end
+    local ir_op = { 'stereo', 'mono' } 
+    params:add{
+        type = 'option', id = 'input routing', options = ir_op,
+        action = function(v) route = ir_op[v]; update() end
+    }
+    params:add{
+        type = 'control', id = 'input pan', 
+        controlspec = cs.def{ min = -1, max = 1, default = 0.7 },
+        action = function(v) pan = v; update() end
     }
 end
 
@@ -284,44 +315,11 @@ do
     }
 end
     
-params:add_separator('input')
-do
-    local idx = 3
-    local off = (idx - 1) * 2
-
-    local route = 'stereo'
-    local pan = 0
-    local function update()
-        local v, p = 1, pan
-
-        if route == 'stereo' then
-            softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
-            softcut.level_input_cut(2, off + 1, 0)
-            softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
-            softcut.level_input_cut(1, off + 2, 0)
-        elseif route == 'mono' then
-            softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
-            softcut.level_input_cut(1, off + 2, v * ((p < 0) and 1 + p or 1))
-            softcut.level_input_cut(2, off + 1, v * ((p > 0) and 1 - p or 1))
-            softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
-        end
-    end
-    local ir_op = { 'stereo', 'mono' } 
-    params:add{
-        type = 'option', id = 'input routing', options = ir_op,
-        action = function(v) route = ir_op[v]; update() end
-    }
-    params:add{
-        type = 'control', id = 'input pan', 
-        controlspec = cs.def{ min = -1, max = 1, default = 0.7 },
-        action = function(v) pan = v; update() end
-    }
-end
-
 params:set('rate 1', tab.key(rates[1].k, '2x'))
 params:set('rate 2', tab.key(rates[2].k, '-1/2x'))
 params:set('vol 1', 0.5)
 params:set('vol rec', 0)
+params:set('rec -> rec', 0.5)
 
 local function post_init()
     softcut.pan(2, -1)
