@@ -34,15 +34,65 @@ Pages[1] = function()
         end
     end
 end
+local function Tap()
+    local _tap = Text.key.trigger()
+
+    local tap_blink = 0
+    local tap_clock = nil
+    local tap_buf = {}
+
+    return function()
+        _tap{
+            n = 2, x = k[2].x, y = k[2].y, label = 'tap',
+            lvl = tap_blink*11 + 4,
+            action = function(_, _, t)
+                if t < 1 and t > 0 then
+                    table.insert(tap_buf, t)
+                    if #tap_buf > 2 then table.remove(tap_buf, 1) end
+
+                    local avg = 0
+                    for i,v in ipairs(tap_buf) do avg = avg + v end
+                    avg = avg / #tap_buf
+
+                    params:set('time', avg)
+
+                    if tap_clock then clock.cancel(tap_clock) end
+                    tap_clock = clock.run(function() 
+                        while true do
+                            tap_blink = 1; redraw()
+                            clock.sleep(avg*0.5)
+                            tap_blink = 0; redraw()
+                            clock.sleep(avg*0.5)
+                        end
+                    end)
+                else
+                    tap_buf = {}
+                    if tap_clock then clock.cancel(tap_clock) end
+                    tap_clock = nil
+                    tap_blink = 0
+                end
+            end
+        }
+    end
+end
 Altpages[1] = function()
     local _volrec = Text.enc.control()
     local _fade = Text.enc.control()
     local _slew = Text.enc.control()
 
+    local _tap = Tap()
+    local _res = Text.key.trigger()
+
     return function()
         ctl(_volrec, 1, 'vol rec')
         ctl(_fade, 2, 'fade')
         ctl(_slew, 3, 'slew')
+
+        _tap{}
+        _res{
+            n = 3, x = k[3].x, y = k[3].y, label = 'reset',
+            state = of.param('reset')
+        }
     end
 end
 
@@ -80,10 +130,35 @@ Altpages[2] = function()
     local _e2 = Text.enc.control()
     local _e3 = Text.enc.control()
 
+    local _k2 = Text.key.momentary()
+    local _k3 = { trig = Key.trigger(), lbl = Text.label() }
+
     return function()
         ctl(_e1, 1, 'rec -> rec')
         ctl(_e2, 2, '1 -> rec')
         ctl(_e3, 3, '2 -> rec')
+
+        _k2{
+            n = 2, x = k[2].x, y = k[2].y, label = '~',
+            state = of.param('~')
+        }
+        local froze = params:get('freeze') > 0
+        _k3.trig{
+            n = 3,
+            action = function()
+                if not froze then
+                    params:set('freeze', 1)
+                else
+                    params:delta('clear')
+                    params:set('freeze', 0)
+                end
+                redraw()
+            end
+        }
+        _k3.lbl{
+             x = k[3].x, y = k[3].y, lvl = 4,
+             label = (not froze) and 'freeze' or 'clear'
+        }
     end
 end
 

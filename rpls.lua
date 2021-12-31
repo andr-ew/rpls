@@ -28,7 +28,7 @@ Key, Enc = include 'lib/nest/norns'
 Text = include 'lib/nest/text'
 of = include 'lib/nest/util/of'
 
-post_init = include 'lib/params'
+local post_init = include 'lib/params'
 x, y, redraw_graphics = include 'lib/gfx'
 include 'lib/ui'
 

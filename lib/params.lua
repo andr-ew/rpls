@@ -29,14 +29,11 @@ for idx = 1,3 do
 end
 do
     local idx = 3
-    local off = (idx - 1) * 2
 
     stereo('loop', idx, 0)
     stereo('rec', idx, 1)
     stereo('play', idx, 1)
     -- stereo('level', idx, 0)
-    stereo('pre_level', idx, 0)
-    stereo('rec_level', idx, 1)
     -- stereo('fade_time', idx, rec_fade)
 
 end
@@ -68,37 +65,88 @@ local rates = {
         v = { -6, -5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5, 6 }
     },
     rec = {
-        k = { '0x', '1x', '2x', '3x', '4x' },
-        v = { 0, 1, 2, 3, 4 }
+        k = { 
+            '0x', 
+            -- '1/2x', 
+            '1x', '2x', '3x', '4x' 
+        },
+        v = { 
+            0, 
+            -- 0.5, 
+            1, 2, 3, 4 
+        }
     }
 }
 
 params:add_separator('rate')
-params:add{
-    type='option', id = 'rate rec',
-    options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
-    action = function(i)
-        stereo('rate', 3, rates.rec.v[i])
+do
+    local slew
+    local function update_slew()
+        for i = 1,6 do
+            softcut.rate_slew_time(i, slew)
+        end
     end
-}
-for idx = 1,2 do
+    local clk
+    local function slew_temp(idx, v)
+        local wait = v --0.1
+
+        if clk then clock.cancel(clk) end
+        clk = clock.run(function() 
+            stereo('rate_slew_time', idx, v)
+            clock.sleep(wait)
+            update_slew()
+        end)
+    end
+
+    local rate = { 1, 1, 1 }
+    local wob = 0
+    local function update_rate()
+        for i = 1,3 do
+            stereo('rate', i, rate[i] + wob)
+        end
+    end
     params:add{
-        type='option', id = 'rate '..idx,
-        options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
+        type='option', id = 'rate rec',
+        options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
         action = function(i)
-            stereo('rate', idx, rates[idx].v[i])
+            rate[3] = rates.rec.v[i]; update_rate()
+        end
+    }
+    for idx = 1,2 do
+        params:add{
+            type = 'option', id = 'rate '..idx,
+            options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
+            action = function(i)
+                rate[idx] = rates[idx].v[i]; update_rate()
+            end
+        }
+    end
+    params:add{
+        type = 'control', id = 'slew',
+        controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
+        action = function(v)
+            slew = v; update_slew()
+        end
+    }
+    params:add{
+        type = 'binary', behavior = 'momentary', id = '~',
+        action = function(v)
+            -- warble logic courtesy of cranes
+            local function sl()
+                slew_temp(3, 0.6 + (math.random(-30,10)/100))
+            end
+            if v > 0 then
+                wob = (math.random(-10,10)/1000)*5
+                sl()
+                update_rate()
+            else
+                wob = 0
+                sl()
+                update_rate()
+            end
         end
     }
 end
-params:add{
-    type='control', id ='slew',
-    controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
-    action = function(v)
-        for i = 1,6 do
-            softcut.rate_slew_time(i, v)
-        end
-    end
-}
 
 local function get_rate(idx)
     local k = (idx==3) and 'rec' or idx
@@ -115,9 +163,9 @@ do
 
     params:add{
         type='control', id='time',
-        controlspec = cs.def{ min = 0.001, max = 2*3, default = 4 },
+        controlspec = cs.def{ min = 0.001/3, max = 2, default = 1 },
         action = function(v)
-            time = util.round(v/3, 0.001)
+            time = util.round(v, 0.001)
 
             local mar = (0.5*2) + (5*3)
             for i = 1,3 do
@@ -139,7 +187,7 @@ do
 
     local function res(i)
         local st = loop_points[heads[i]][1] --- 0.1
-        local en = loop_points[heads[i]][2] + 0.25
+        local en = loop_points[heads[i]][2] + 0.14--+ 0.25
         local rate = get_rate(i)
         local rev = rate < 0
 
@@ -175,23 +223,30 @@ do
             tick_all = tick_all + quant
         end
     end)
+
+    params:add{
+        type='control', id='fade',
+        controlspec = cs.def { default = 0.07, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
+        action = function(v)
+            for i = 1,4 do
+                softcut.fade_time(i, v)
+                play_mar = v
+                rec_mar = v*2
+            end
+            for i = 5,6 do
+                softcut.fade_time(i, v) --*2
+                play_mar = v
+                rec_mar = v*2
+            end
+        end
+    }
+    params:add{
+        type = 'binary', behavior = 'trigger', id = 'reset',
+        action = function()
+            resall()
+        end
+    }
 end
-params:add{
-    type='control', id='fade',
-    controlspec = cs.def { default = 0.07, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
-    action = function(v)
-        for i = 1,4 do
-            softcut.fade_time(i, v)
-            play_mar = v
-            rec_mar = v*2
-        end
-        for i = 5,6 do
-            softcut.fade_time(i, v) --*2
-            play_mar = v
-            rec_mar = v*2
-        end
-    end
-}
 
 params:add_separator('feedback')
 for _,idx in pairs{ 3, 1, 2 } do
@@ -207,6 +262,19 @@ for _,idx in pairs{ 3, 1, 2 } do
         end
     }
 end
+params:add{
+    type = 'binary', behavior = 'toggle', id = 'freeze',
+    action = function(froze)
+        stereo('pre_level', 3, froze)
+        stereo('rec_level', 3, ~ froze & 1)
+    end
+}
+params:add{
+    type = 'binary', behavior = 'trigger', id = 'clear',
+    action = function()
+        softcut.buffer_clear()
+    end
+}
 
 params:add_separator('mix')
 for idx = 1,3 do
@@ -270,7 +338,7 @@ params:add_separator('filter')
 do
     local pre = 'hp'
     local post = 'lp'
-    local both = { pre, post }
+    local both = { 'hp', 'lp' }
     local defaults = { hp = 0, lp = 1 }
 
     for i = 1,2 do
@@ -282,7 +350,7 @@ do
     stereo('pre_filter_'..pre, 3, 1)
 
     for i,filter in ipairs(both) do
-        local pre = i==1
+        local pre = filter==pre
 
         params:add {
             type = 'control', id = filter,
@@ -323,6 +391,8 @@ params:set('rec -> rec', 0.5)
 local function post_init()
     softcut.pan(2, -1)
     softcut.pan(1, 1)
+
+    params:set('freeze', 0)
 end
 
 return post_init
