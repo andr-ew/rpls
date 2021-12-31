@@ -80,10 +80,17 @@ Altpages[2] = function()
     local _e2 = Text.enc.control()
     local _e3 = Text.enc.control()
 
+    local _k2 = Text.key.momentary()
+
     return function()
         ctl(_e1, 1, 'rec -> rec')
         ctl(_e2, 2, '1 -> rec')
         ctl(_e3, 3, '2 -> rec')
+
+        _k2{
+            n = 2, x = k[2].x, y = k[2].y, label = '~',
+            state = of.param('~')
+        }
     end
 end
 
