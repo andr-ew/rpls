@@ -74,31 +74,71 @@ local rates = {
 }
 
 params:add_separator('rate')
-params:add{
-    type='option', id = 'rate rec',
-    options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
-    action = function(i)
-        stereo('rate', 3, rates.rec.v[i])
-    end
-}
 for idx = 1,2 do
     params:add{
-        type='option', id = 'rate '..idx,
+        type = 'option', id = 'rate '..idx,
         options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
         action = function(i)
             stereo('rate', idx, rates[idx].v[i])
         end
     }
 end
-params:add{
-    type='control', id ='slew',
-    controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
-    action = function(v)
+do
+    local slew
+    local function update_slew()
         for i = 1,6 do
-            softcut.rate_slew_time(i, v)
+            softcut.rate_slew_time(i, slew)
         end
     end
-}
+    local clk
+    local function slew_temp(idx, v)
+        local wait = v --0.1
+
+        if clk then clock.cancel(clk) end
+        clk = clock.run(function() 
+            stereo('rate_slew_time', idx, v)
+            clock.sleep(wait)
+            update_slew()
+        end)
+    end
+
+    local rate
+    local wob = 0
+    local function update_rate()
+        stereo('rate', 3, rate + wob)
+    end
+    params:add{
+        type='option', id = 'rate rec',
+        options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
+        action = function(i)
+            rate = rates.rec.v[i]; update_rate()
+        end
+    }
+    params:add{
+        type = 'control', id = 'slew',
+        controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
+        action = function(v)
+            slew = v; update_slew()
+        end
+    }
+    params:add{
+        type = 'binary', behavior = 'momentary', id = '~',
+        action = function(v)
+            -- warble logic courtesy of cranes
+            local function sl()
+                slew_temp(3, 0.6 + (math.random(-30,10)/100)*5)
+            end
+                if v > 0 then
+                    wob = (math.random(-10,10)/1000)*5
+                update_rate()
+            else
+                slew_temp(3, 0.6 + (math.random(-30,10)/100)*2)
+                wob = 0
+                update_rate()
+            end
+        end
+    }
+end
 
 local function get_rate(idx)
     local k = (idx==3) and 'rec' or idx
