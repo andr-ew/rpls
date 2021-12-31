@@ -313,7 +313,7 @@ params:add_separator('filter')
 do
     local pre = 'hp'
     local post = 'lp'
-    local both = { pre, post }
+    local both = { 'hp', 'lp' }
     local defaults = { hp = 0, lp = 1 }
 
     for i = 1,2 do
@@ -325,7 +325,7 @@ do
     stereo('pre_filter_'..pre, 3, 1)
 
     for i,filter in ipairs(both) do
-        local pre = i==1
+        local pre = filter==pre
 
         params:add {
             type = 'control', id = filter,
