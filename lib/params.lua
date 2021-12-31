@@ -68,21 +68,12 @@ local rates = {
         v = { -6, -5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5, 6 }
     },
     rec = {
-        k = { '0x', '1x', '2x', '3x', '4x' },
-        v = { 0, 1, 2, 3, 4 }
+        k = { '0x', '1/2x', '1x', '2x', '3x', '4x' },
+        v = { 0, 0.5, 1, 2, 3, 4 }
     }
 }
 
 params:add_separator('rate')
-for idx = 1,2 do
-    params:add{
-        type = 'option', id = 'rate '..idx,
-        options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
-        action = function(i)
-            stereo('rate', idx, rates[idx].v[i])
-        end
-    }
-end
 do
     local slew
     local function update_slew()
@@ -102,18 +93,29 @@ do
         end)
     end
 
-    local rate
+    local rate = { 1, 1, 1 }
     local wob = 0
     local function update_rate()
-        stereo('rate', 3, rate + wob)
+        for i = 1,3 do
+            stereo('rate', i, rate[i] + wob)
+        end
     end
     params:add{
         type='option', id = 'rate rec',
         options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
         action = function(i)
-            rate = rates.rec.v[i]; update_rate()
+            rate[3] = rates.rec.v[i]; update_rate()
         end
     }
+    for idx = 1,2 do
+        params:add{
+            type = 'option', id = 'rate '..idx,
+            options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
+            action = function(i)
+                rate[idx] = rates[idx].v[i]; update_rate()
+            end
+        }
+    end
     params:add{
         type = 'control', id = 'slew',
         controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
@@ -126,14 +128,15 @@ do
         action = function(v)
             -- warble logic courtesy of cranes
             local function sl()
-                slew_temp(3, 0.6 + (math.random(-30,10)/100)*5)
+                slew_temp(3, 0.6 + (math.random(-30,10)/100))
             end
-                if v > 0 then
-                    wob = (math.random(-10,10)/1000)*5
+            if v > 0 then
+                wob = (math.random(-10,10)/1000)*5
+                sl()
                 update_rate()
             else
-                slew_temp(3, 0.6 + (math.random(-30,10)/100)*2)
                 wob = 0
+                sl()
                 update_rate()
             end
         end
