@@ -29,14 +29,11 @@ for idx = 1,3 do
 end
 do
     local idx = 3
-    local off = (idx - 1) * 2
 
     stereo('loop', idx, 0)
     stereo('rec', idx, 1)
     stereo('play', idx, 1)
     -- stereo('level', idx, 0)
-    stereo('pre_level', idx, 0)
-    stereo('rec_level', idx, 1)
     -- stereo('fade_time', idx, rec_fade)
 
 end
@@ -68,8 +65,16 @@ local rates = {
         v = { -6, -5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5, 6 }
     },
     rec = {
-        k = { '0x', '1/2x', '1x', '2x', '3x', '4x' },
-        v = { 0, 0.5, 1, 2, 3, 4 }
+        k = { 
+            '0x', 
+            -- '1/2x', 
+            '1x', '2x', '3x', '4x' 
+        },
+        v = { 
+            0, 
+            -- 0.5, 
+            1, 2, 3, 4 
+        }
     }
 }
 
@@ -250,6 +255,19 @@ for _,idx in pairs{ 3, 1, 2 } do
         end
     }
 end
+params:add{
+    type = 'binary', behavior = 'toggle', id = 'freeze',
+    action = function(froze)
+        stereo('pre_level', 3, froze)
+        stereo('rec_level', 3, ~ froze & 1)
+    end
+}
+params:add{
+    type = 'binary', behavior = 'trigger', id = 'clear',
+    action = function()
+        softcut.buffer_clear()
+    end
+}
 
 params:add_separator('mix')
 for idx = 1,3 do
@@ -366,6 +384,8 @@ params:set('rec -> rec', 0.5)
 local function post_init()
     softcut.pan(2, -1)
     softcut.pan(1, 1)
+
+    params:set('freeze', 0)
 end
 
 return post_init

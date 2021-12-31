@@ -81,6 +81,7 @@ Altpages[2] = function()
     local _e3 = Text.enc.control()
 
     local _k2 = Text.key.momentary()
+    local _k3 = { trig = Key.trigger(), lbl = Text.label() }
 
     return function()
         ctl(_e1, 1, 'rec -> rec')
@@ -90,6 +91,23 @@ Altpages[2] = function()
         _k2{
             n = 2, x = k[2].x, y = k[2].y, label = '~',
             state = of.param('~')
+        }
+        local froze = params:get('freeze') > 0
+        _k3.trig{
+            n = 3,
+            action = function()
+                if not froze then
+                    params:set('freeze', 1)
+                else
+                    params:delta('clear')
+                    params:set('freeze', 0)
+                end
+                redraw()
+            end
+        }
+        _k3.lbl{
+             x = k[3].x, y = k[3].y, lvl = 4,
+             label = (not froze) and 'freeze' or 'clear'
         }
     end
 end
