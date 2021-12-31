@@ -163,9 +163,9 @@ do
 
     params:add{
         type='control', id='time',
-        controlspec = cs.def{ min = 0.001, max = 2*3, default = 4 },
+        controlspec = cs.def{ min = 0.001/3, max = 2, default = 1 },
         action = function(v)
-            time = util.round(v/3, 0.001)
+            time = util.round(v, 0.001)
 
             local mar = (0.5*2) + (5*3)
             for i = 1,3 do
@@ -187,7 +187,7 @@ do
 
     local function res(i)
         local st = loop_points[heads[i]][1] --- 0.1
-        local en = loop_points[heads[i]][2] + 0.25
+        local en = loop_points[heads[i]][2] + 0.14--+ 0.25
         local rate = get_rate(i)
         local rev = rate < 0
 
@@ -223,23 +223,30 @@ do
             tick_all = tick_all + quant
         end
     end)
+
+    params:add{
+        type='control', id='fade',
+        controlspec = cs.def { default = 0.07, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
+        action = function(v)
+            for i = 1,4 do
+                softcut.fade_time(i, v)
+                play_mar = v
+                rec_mar = v*2
+            end
+            for i = 5,6 do
+                softcut.fade_time(i, v) --*2
+                play_mar = v
+                rec_mar = v*2
+            end
+        end
+    }
+    params:add{
+        type = 'binary', behavior = 'trigger', id = 'reset',
+        action = function()
+            resall()
+        end
+    }
 end
-params:add{
-    type='control', id='fade',
-    controlspec = cs.def { default = 0.07, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
-    action = function(v)
-        for i = 1,4 do
-            softcut.fade_time(i, v)
-            play_mar = v
-            rec_mar = v*2
-        end
-        for i = 5,6 do
-            softcut.fade_time(i, v) --*2
-            play_mar = v
-            rec_mar = v*2
-        end
-    end
-}
 
 params:add_separator('feedback')
 for _,idx in pairs{ 3, 1, 2 } do
