@@ -17,7 +17,7 @@ local function stereo(command, pair, ...)
 end
 
 for idx = 1,3 do
-    stereo('enable', idx, 1)
+    --stereo('enable', idx, 1)
     stereo('level_slew_time', idx, 0.1)
     stereo('recpre_slew_time', idx, 0.1)
 
@@ -403,6 +403,10 @@ local function post_init()
     softcut.pan(1, 1)
 
     params:set('freeze', 0)
+end
+
+for idx = 1,3 do
+    stereo('enable', idx, 1)
 end
 
 return post_init
