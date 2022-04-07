@@ -320,9 +320,19 @@ do
             softcut.level_input_cut(1, off + 2, v * ((p < 0) and 1 + p or 1))
             softcut.level_input_cut(2, off + 1, v * ((p > 0) and 1 - p or 1))
             softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
+        elseif route == 'left' then
+            softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
+            softcut.level_input_cut(1, off + 2, v * ((p < 0) and 1 + p or 1))
+            softcut.level_input_cut(2, off + 1, 0)
+            softcut.level_input_cut(2, off + 2, 0)
+        elseif route == 'right' then
+            softcut.level_input_cut(1, off + 1, 0)
+            softcut.level_input_cut(1, off + 2, 0)
+            softcut.level_input_cut(2, off + 1, v * ((p > 0) and 1 - p or 1))
+            softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
         end
     end
-    local ir_op = { 'stereo', 'mono' } 
+    local ir_op = { 'stereo', 'mono', 'left', 'right' } 
     params:add{
         type = 'option', id = 'input routing', options = ir_op,
         action = function(v) route = ir_op[v]; update() end
