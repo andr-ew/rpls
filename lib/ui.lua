@@ -43,7 +43,7 @@ local function Tap()
 
     return function()
         _tap{
-            n = 2, x = k[2].x, y = k[2].y, label = 'tap',
+            n = 3, x = k[3].x, y = k[3].y, label = 'tap',
             lvl = tap_blink*11 + 4,
             action = function(_, _, t)
                 if t < 1 and t > 0 then
@@ -81,7 +81,6 @@ Altpages[1] = function()
     local _slew = Text.enc.control()
 
     local _tap = Tap()
-    local _res = Text.key.trigger()
 
     return function()
         ctl(_volrec, 1, 'vol rec')
@@ -89,10 +88,6 @@ Altpages[1] = function()
         ctl(_slew, 3, 'slew')
 
         _tap{}
-        _res{
-            n = 3, x = k[3].x, y = k[3].y, label = 'reset',
-            state = of.param('reset')
-        }
     end
 end
 
@@ -130,18 +125,18 @@ Altpages[2] = function()
     local _e2 = Text.enc.control()
     local _e3 = Text.enc.control()
 
-    local _k2 = Text.key.momentary()
-    local _k3 = { trig = Key.trigger(), lbl = Text.label() }
+    local _res = Text.key.trigger()
 
     return function()
         ctl(_e1, 1, 'rec -> rec')
         ctl(_e2, 2, '1 -> rec')
         ctl(_e3, 3, '2 -> rec')
 
-        _k2{
-            n = 2, x = k[2].x, y = k[2].y, label = '~',
-            state = of.param('~')
+        _res{
+            n = 3, x = k[3].x, y = k[3].y, label = 'reset',
+            state = of.param('reset')
         }
+        --[[
         local froze = params:get('freeze') > 0
         _k3.trig{
             n = 3,
@@ -159,6 +154,7 @@ Altpages[2] = function()
              x = k[3].x, y = k[3].y, lvl = 4,
              label = (not froze) and 'freeze' or 'clear'
         }
+        ]]
     end
 end
 
@@ -185,7 +181,7 @@ Altpages[3] = function()
         ctl(_e3, 3, 'rev_monitor_input', 'verb mon')
 
         _verbon{
-            n = 2, x = k[2].x, y = k[2].y, label = 'verb on',
+            n = 3, x = k[3].x, y = k[3].y, label = 'verb on',
             state = { params:get('reverb') - 1, function(v) params:set('reverb', v+1) end }
         }
     end
@@ -203,21 +199,34 @@ local function App()
     local alt = 0
     local _alt = Key.momentary()
 
+    local _freeze = Text.key.toggle()
+
     return function()
         _alt{
             n = 1,
             state = { alt, function(v) alt = v; redraw() end },
         }
+        _tab{
+            n = 2, x = { { 118-116 }, { 122-116 }, { 126-116 } }, y = 50, 
+            align = { 'right', 'bottom' },
+            font_size = 16, margin = 3,
+            options = { '.', '.', '.' },
+            state = { page, function(v) page = v end }
+        }
 
         if alt==0 then
             _pages[page]{}
 
-            _tab{
-                n = { 2, 3 }, x = { { 118-116 }, { 122-116 }, { 126-116 } }, y = 50, 
-                align = { 'right', 'bottom' },
-                font_size = 16, margin = 3,
-                options = { '.', '.', '.' },
-                state = { page, function(v) page = v end }
+            _freeze{
+                n = 3, x = k[3].x, y = k[3].y, label = 'freeze',
+                state = { params:get('freeze') }, edge = 'falling',
+                action = function(v, t)
+                    if t < 0.5 then params:set('freeze', v)
+                    else
+                        params:delta('clear') 
+                        params:set('freeze', 0)
+                    end
+                end
             }
         else
             _altpages[page]{}
