@@ -1,4 +1,4 @@
-# rpls
+# rpls (beta)
 tidal repitch echo /
 phonetic fracture prism
 
