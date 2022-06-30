@@ -183,7 +183,7 @@ do
     
     local tick = { 100, 100, 100 }
     local tick_all = 100
-    local quant = 0.001
+    local quant = 0.005
 
     local function res(i)
         local st = loop_points[heads[i]][1] --- 0.1
