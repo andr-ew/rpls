@@ -153,24 +153,31 @@ local function get_rate(idx)
     return rates[k].v[params:get('rate '..k)]
 end
 
-params:add_separator('clock')
+
+params:add{
+    type='option', id='mode',
+    options = clock_modes,
+}
+local function get_mode()
+    return clock_modes[params:get('mode')]
+end
 do
     local loop_points = {}
     for i = 1,3 do loop_points[i] = { 0, 0 } end
 
     local heads = { 1, 2, 3 }
-    local time = 1
+    local secs = 1
 
     params:add{
         type='control', id='time',
         controlspec = cs.def{ min = 0.001/3, max = 2, default = 1 },
         action = function(v)
-            time = util.round(v, 0.001)
+            secs = util.round(v, 0.001)
 
             local mar = (0.5*2) + (5*3)
             for i = 1,3 do
                 loop_points[i][1] = (i - 1) * (mar)
-                loop_points[i][2] = (i- 1) * (mar) + time
+                loop_points[i][2] = (i- 1) * (mar) + secs
             end
         end
     }
@@ -205,6 +212,8 @@ do
     end
     
     clock.run(function()
+        local time = secs
+
         while true do
             if tick_all >= time then
                 resall()

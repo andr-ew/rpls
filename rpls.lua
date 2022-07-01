@@ -23,14 +23,24 @@
 -- delay, but each tap plays 
 -- back at a different rate )
 
+--include git submodule libs
+
 nest = include 'lib/nest/core'
 Key, Enc = include 'lib/nest/norns'
 Text = include 'lib/nest/text'
 of = include 'lib/nest/util/of'
 
+--global variables
+
+clock_modes = { 'free', 'sync' }
+
+--include script libs
+
 local post_init = include 'lib/params'
 x, y, redraw_graphics = include 'lib/gfx'
 include 'lib/ui'
+
+--init/cleanup
 
 function init()
     params:read()
