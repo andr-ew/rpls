@@ -153,32 +153,81 @@ local function get_rate(idx)
     return rates[k].v[params:get('rate '..k)]
 end
 
-
-params:add{
-    type='option', id='mode',
-    options = clock_modes,
-}
-local function get_mode()
-    return clock_modes[params:get('mode')]
+params:add_separator('clock')
+local get_mode
+do
+    local modes = { 'free', 'sync' }
+    params:add{
+        type='option', id='mode',
+        options = modes,
+    }
+    get_mode = function()
+        return modes[params:get('mode')]
+    end
 end
 do
-    local loop_points = {}
-    for i = 1,3 do loop_points[i] = { 0, 0 } end
-
     local heads = { 1, 2, 3 }
-    local secs = 1
+    local loop_points = { free = {}, sync = {} }
+    for i = 1,3 do 
+        loop_points.free[i] = { 0, 0 } 
+        loop_points.sync[i] = { 0, 0 } 
+    end
 
+    local function set_loop_points(mode, t)
+        local mar = (0.5*2) + (5*3)
+        for i = 1,3 do
+            loop_points[mode][i][1] = (i - 1) * (mar)
+            loop_points[mode][i][2] = (i- 1) * (mar) + t
+        end
+    end
+
+    local secs = 1
     params:add{
         type='control', id='time',
         controlspec = cs.def{ min = 0.001/3, max = 2, default = 1 },
         action = function(v)
             secs = util.round(v, 0.001)
+            set_loop_points('free', secs)
+        end
+    }
 
-            local mar = (0.5*2) + (5*3)
-            for i = 1,3 do
-                loop_points[i][1] = (i - 1) * (mar)
-                loop_points[i][2] = (i- 1) * (mar) + secs
+    local beats = 1
+    local divs
+    --[[
+    do
+        local div_names = {}
+        divs = {}
+        local min = 16
+        for i = 1, min do
+            local pow = min - i + 1
+            div_names[i] = '1/'..math.floor(pow)
+            divs[i] = 1/pow
+        end
+        for i = 1, 8 do
+            table.insert(div_names, i)
+            table.insert(divs, i)
+        end
+        params:add{
+            type = 'option', id='time_beats', default = tab.key(div_names, '1'),
+            options = div_names,
+            action = function(v)
+                beats = divs[v]
+                set_loop_points('sync', beats * clock.get_beat_sec())
             end
+        }
+    end
+    --]]
+    local quant_secs = 0.005
+    local quant_beats = 1/16
+
+    params:add{
+        type = 'control', id='time_beats',
+        controlspec = cs.def { 
+            min = 0, max = 10, default = 1, quantum = 1/10/4,
+        },
+        action = function(v)
+            beats = math.max(v, quant_beats)
+            set_loop_points('sync', beats * clock.get_beat_sec())
         end
     }
 
@@ -190,11 +239,11 @@ do
     
     local tick = { 100, 100, 100 }
     local tick_all = 100
-    local quant = 0.005
 
     local function res(i)
-        local st = loop_points[heads[i]][1] --- 0.1
-        local en = loop_points[heads[i]][2] + 0.14--+ 0.25
+        local m = get_mode()
+        local st = loop_points[m][heads[i]][1] --- 0.1
+        local en = loop_points[m][heads[i]][2] + 0.14--+ 0.25
         local rate = get_rate(i)
         local rev = rate < 0
 
@@ -212,9 +261,11 @@ do
     end
     
     clock.run(function()
-        local time = secs
-
         while true do
+            local free = get_mode() == 'free'
+            local time = free and secs or beats
+            local quant = free and quant_secs or quant_beats
+
             if tick_all >= time then
                 resall()
             else
@@ -223,7 +274,7 @@ do
                 end
             end
             
-            clock.sleep(quant)
+            if free then clock.sleep(quant) else clock.sync(quant) end
 
             for i = 1,3 do 
                 local rate = math.abs(get_rate(i))

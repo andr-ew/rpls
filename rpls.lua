@@ -30,10 +30,6 @@ Key, Enc = include 'lib/nest/norns'
 Text = include 'lib/nest/text'
 of = include 'lib/nest/util/of'
 
---global variables
-
-clock_modes = { 'free', 'sync' }
-
 --include script libs
 
 local post_init = include 'lib/params'
