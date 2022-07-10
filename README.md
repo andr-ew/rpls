@@ -20,7 +20,7 @@ back at a different rate )
 a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliterate)
 
 ## requirements
-- norns (210927)
+- [norns](https://github.com/p3r7/awesome-monome-norns) (210927)
 - audio input
 
 ## install
