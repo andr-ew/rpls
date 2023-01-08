@@ -110,6 +110,7 @@ do
         options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
         action = function(i)
             rate[3] = rates.rec.v[i]; update_rate()
+            crops.dirty.screen = true
         end
     }
     for idx = 1,2 do
@@ -118,6 +119,7 @@ do
             options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
             action = function(i)
                 rate[idx] = rates[idx].v[i]; update_rate()
+                crops.dirty.screen = true
             end
         }
     end
@@ -126,6 +128,7 @@ do
         controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
         action = function(v)
             slew = v; update_slew()
+            crops.dirty.screen = true
         end
     }
     params:add{
@@ -144,6 +147,7 @@ do
                 sl()
                 update_rate()
             end
+            crops.dirty.screen = true
         end
     }
 end
@@ -188,6 +192,8 @@ do
         action = function(v)
             secs = util.round(v, 0.001)
             set_loop_points('free', secs)
+
+            crops.dirty.screen = true
         end
     }
 
@@ -228,6 +234,8 @@ do
         action = function(v)
             beats = math.max(v, quant_beats)
             set_loop_points('sync', beats * clock.get_beat_sec())
+            
+            crops.dirty.screen = true
         end
     }
 
@@ -298,12 +306,16 @@ do
                 play_mar = v
                 rec_mar = v*2
             end
+            
+            crops.dirty.screen = true
         end
     }
     params:add{
         type = 'binary', behavior = 'trigger', id = 'reset',
         action = function()
             resall()
+            
+            crops.dirty.screen = true
         end
     }
 end
@@ -314,11 +326,13 @@ for _,idx in pairs{ 3, 1, 2 } do
     local name = idx==3 and 'rec' or idx
 
     params:add{
-        type = 'control', id = name..' -> rec', controlspec = cs.def{ default = 0 },
+        type = 'control', id = name..' > rec', controlspec = cs.def{ default = 0 },
         action = function(v)
             softcut.level_cut_cut(1 + off, 2 + 4, v)
             softcut.level_cut_cut(2 + off, 1 + 4, v)
             -- stereo('pre_level', idx, v)
+            
+            crops.dirty.screen = true
         end
     }
 end
@@ -327,6 +341,8 @@ params:add{
     action = function(froze)
         stereo('pre_level', 3, froze)
         stereo('rec_level', 3, ~ froze & 1)
+        
+        crops.dirty.screen = true
     end
 }
 params:add{
@@ -353,12 +369,18 @@ for idx = 1,3 do
     params:add{
         type='control', id = 'vol '..name,
         controlspec = cs.def { default = 1 },
-        action = function(v) lvl = v; update() end
+        action = function(v) 
+            lvl = v; update() 
+            crops.dirty.screen = true
+        end
     }
     params:add{
         type='control', id = 'pan '..name,
         controlspec = cs.def { min = -1, max = 1, default = 0 },
-        action = function(v) pan = v; update() end
+        action = function(v) 
+            pan = v; update() 
+            crops.dirty.screen = true
+        end
     }
 end
 do
@@ -419,11 +441,13 @@ do
                 pre and (
                     function(v) 
                         stereo('pre_filter_fc', 3, util.linexp(0, 1, 2, 20000, v)) 
+                        crops.dirty.screen = true
                     end
                 ) or (
                     function(v) 
                         for i = 1,2 do
                             stereo('post_filter_fc', i, util.linexp(0, 1, 2, 20000, v)) 
+                            crops.dirty.screen = true
                         end
                     end
                 )
@@ -438,6 +462,8 @@ do
                 stereo('post_filter_rq', i, util.linexp(0, 1, 0.01, 20, 1 - v))
             end
             stereo('pre_filter_rq', 3, util.linexp(0, 1, 0.01, 20, 1 - v))
+            
+            crops.dirty.screen = true
         end
     }
 end
@@ -446,7 +472,7 @@ params:set('rate 1', tab.key(rates[1].k, '2x'))
 params:set('rate 2', tab.key(rates[2].k, '-1/2x'))
 params:set('vol 1', 0.5)
 params:set('vol rec', 0)
-params:set('rec -> rec', 0.5)
+params:set('rec > rec', 0.5)
 
 local function post_init()
     softcut.pan(2, -1)

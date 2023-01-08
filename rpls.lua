@@ -23,20 +23,28 @@
 -- delay, but each tap plays 
 -- back at a different rate )
 
---include git submodule libs
+--git submodule libs
 
-nest = include 'lib/nest/core'
-Key, Enc = include 'lib/nest/norns'
-Text = include 'lib/nest/text'
-of = include 'lib/nest/util/of'
+include 'lib/crops/core'                      --crops, a UI component framework
+_enc = include 'lib/crops/routines/enc'
+_key = include 'lib/crops/routines/key'
+_screen = include 'lib/crops/routines/screen'
 
 --include script libs
 
-local post_init = include 'lib/params'
-x, y, redraw_graphics = include 'lib/gfx'
-include 'lib/ui'
+local post_init = include 'lib/params'        --add params
+App = {}
+App.norns = include 'lib/ui'                  --norns UI component
 
---init/cleanup
+--connect UI components
+
+_app = { norns = App.norns() }
+
+crops.connect_enc(_app.norns)
+crops.connect_key(_app.norns)
+crops.connect_screen(_app.norns)
+
+--norns globals
 
 function init()
     params:read()
