@@ -341,6 +341,8 @@ params:add{
     action = function(froze)
         stereo('pre_level', 3, froze)
         stereo('rec_level', 3, ~ froze & 1)
+
+        print('frozen', froze)
         
         crops.dirty.screen = true
     end
@@ -349,6 +351,9 @@ params:add{
     type = 'binary', behavior = 'trigger', id = 'clear',
     action = function()
         softcut.buffer_clear()
+        params:set('freeze', 0)
+
+        crops.dirty.screen = true
     end
 }
 

@@ -22,8 +22,6 @@ local k = {
     { x = x[2], y = y[4] },
 }
 
-local Pages = {}
-
 local function Control()
     return function(props)
         _enc.control{
@@ -59,6 +57,69 @@ local function Option()
         }
     end
 end
+local function ToggleHold()
+    local downtime = nil
+    local z = 0
+    local blink = false
+    local blink_level = 2
+
+    return function(props)
+        _key.momentary{
+            n = props.n,
+            state = { z, function(v) z = v end }
+        }
+
+        if z==1 then
+            downtime = util.time()
+        elseif z==0 then
+            if downtime and ((util.time() - downtime) > 0.5) then 
+                blink = true
+                blink_level = 1
+                crops.dirty.screen = true
+
+                clock.run(function() 
+                    clock.sleep(0.1)
+                    blink_level = 2
+                    crops.dirty.screen = true
+
+                    params:delta(props.id_hold)
+
+                    clock.sleep(0.2)
+                    blink_level = 1
+                    crops.dirty.screen = true
+
+                    clock.sleep(0.3)
+                    blink = false
+                    crops.dirty.screen = true
+                end)
+            else
+                _key.toggle{
+                    n = props.n, edge = 'falling',
+                    state = {
+                        params:get(props.id_toggle), 
+                        params.set, params, props.id_toggle,
+                    },
+                }
+            end
+            
+            downtime = nil
+        end
+
+        _screen.text{
+            x = k[props.n].x, y = k[props.n].y,
+            text = blink and (
+                props.label_hold or props.id_hold
+            ) or (
+                props.label_toggle or props.id_toggle
+            ),
+            level = ({ 4, 15 })[
+                blink and blink_level or (params:get(props.id_toggle) + 1)
+            ],
+        }
+    end
+end
+
+local Pages = {}
 
 Pages['C'] = function()
     local _time, _vol1, _vol2 = Control(), Control(), Control()
@@ -106,6 +167,8 @@ local function Norns()
         _pages[i] = Pages[name]()
     end
 
+    local _freeze_clear = ToggleHold()
+
     local page = 1
     local alt = 0
 
@@ -124,6 +187,10 @@ local function Norns()
         _screen.list{
             x = k[2].x, y = k[2].y, margin = 3,
             text = pagenames, focus = page,
+        }
+
+        _freeze_clear{
+            n = 3, id_toggle = 'freeze', id_hold = 'clear',
         }
     end
 end
