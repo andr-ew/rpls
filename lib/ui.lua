@@ -34,7 +34,9 @@ local function Control()
         }
         _screen.list{
             x = e[props.n].x, y = e[props.n].y,
-            text = { [props.label or props.id] = util.round(params:get(props.id), 0.01) },
+            text = { 
+                [props.label or props.id] = util.round(params:get(props.id), props.round or 0.01) 
+            },
         }
     end
 end
@@ -88,7 +90,7 @@ local function ToggleHold()
                     blink_level = 1
                     crops.dirty.screen = true
 
-                    clock.sleep(0.3)
+                    clock.sleep(0.4)
                     blink = false
                     crops.dirty.screen = true
                 end)
@@ -122,10 +124,10 @@ end
 local Pages = {}
 
 Pages['C'] = function()
-    local _time, _vol1, _vol2 = Control(), Control(), Control()
+    local _clock, _vol1, _vol2 = Control(), Control(), Control()
 
     return function()
-        _time{ id = 'time', n = 1 }
+        _clock{ id = 'clock mult', label = 'clock', n = 1, round = 0.001 }
         _vol1{ id = 'vol 1', n = 2 } 
         _vol2{ id = 'vol 2', n = 3 } 
     end

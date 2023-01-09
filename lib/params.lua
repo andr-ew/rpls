@@ -158,82 +158,39 @@ local function get_rate(idx)
 end
 
 params:add_separator('clock')
-local get_mode
-do
-    local modes = { 'free', 'sync' }
-    params:add{
-        type='option', id='mode',
-        options = modes,
-    }
-    get_mode = function()
-        return modes[params:get('mode')]
-    end
-end
 do
     local heads = { 1, 2, 3 }
-    local loop_points = { free = {}, sync = {} }
+    local loop_points = {}
     for i = 1,3 do 
-        loop_points.free[i] = { 0, 0 } 
-        loop_points.sync[i] = { 0, 0 } 
+        loop_points[i] = { 0, 0 } 
     end
 
-    local function set_loop_points(mode, t)
+    local function set_loop_points(t)
         local mar = (0.5*2) + (5*3)
         for i = 1,3 do
-            loop_points[mode][i][1] = (i - 1) * (mar)
-            loop_points[mode][i][2] = (i- 1) * (mar) + t
+            loop_points[i][1] = (i - 1) * (mar)
+            loop_points[i][2] = (i- 1) * (mar) + t
         end
     end
-
-    local secs = 1
-    params:add{
-        type='control', id='time',
-        controlspec = cs.def{ min = 0.001/3, max = 2, default = 1 },
-        action = function(v)
-            secs = util.round(v, 0.001)
-            set_loop_points('free', secs)
-
-            crops.dirty.screen = true
-        end
-    }
 
     local beats = 1
-    local divs
-    --[[
-    do
-        local div_names = {}
-        divs = {}
-        local min = 16
-        for i = 1, min do
-            local pow = min - i + 1
-            div_names[i] = '1/'..math.floor(pow)
-            divs[i] = 1/pow
-        end
-        for i = 1, 8 do
-            table.insert(div_names, i)
-            table.insert(divs, i)
-        end
-        params:add{
-            type = 'option', id='time_beats', default = tab.key(div_names, '1'),
-            options = div_names,
-            action = function(v)
-                beats = divs[v]
-                set_loop_points('sync', beats * clock.get_beat_sec())
-            end
-        }
-    end
-    --]]
-    local quant_secs = 0.005
-    local quant_beats = 1/16
 
+    local quant_secs = 0.005
+    local quant
+
+    function clock.tempo_change_handler(bpm)
+        quant = quant_secs / (60 / bpm)
+    end
+    clock.tempo_change_handler(clock.get_tempo())
+    
     params:add{
-        type = 'control', id='time_beats',
+        type = 'control', id = 'clock mult',
         controlspec = cs.def { 
-            min = 0, max = 10, default = 1, quantum = 1/10/4,
+            min = 0, max = 8, default = 1, quantum = 1/8/16,
         },
         action = function(v)
-            beats = math.max(v, quant_beats)
-            set_loop_points('sync', beats * clock.get_beat_sec())
+            beats = math.max(v, quant)
+            set_loop_points(beats * clock.get_beat_sec())
             
             crops.dirty.screen = true
         end
@@ -249,9 +206,8 @@ do
     local tick_all = 100
 
     local function res(i)
-        local m = get_mode()
-        local st = loop_points[m][heads[i]][1] --- 0.1
-        local en = loop_points[m][heads[i]][2] + 0.14--+ 0.25
+        local st = loop_points[heads[i]][1] --- 0.1
+        local en = loop_points[heads[i]][2] + 0.14--+ 0.25
         local rate = get_rate(i)
         local rev = rate < 0
 
@@ -267,12 +223,10 @@ do
         end
         tick_all = 0
     end
-    
+   
     clock.run(function()
         while true do
-            local free = get_mode() == 'free'
-            local time = free and secs or beats
-            local quant = free and quant_secs or quant_beats
+            local time = beats
 
             if tick_all >= time then
                 resall()
@@ -282,7 +236,7 @@ do
                 end
             end
             
-            if free then clock.sleep(quant) else clock.sync(quant) end
+            clock.sync(quant)
 
             for i = 1,3 do 
                 local rate = math.abs(get_rate(i))
