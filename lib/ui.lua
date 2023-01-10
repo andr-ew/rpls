@@ -1,25 +1,26 @@
 local x,y = {}, {}
 
-local mar = { left = 2, top = 7, right = 2, bottom = 0 }
+local mar = { left = 0, top = 7, right = 2, bottom = 2 }
 local w = 128 - mar.left - mar.right
 local h = 64 - mar.top - mar.bottom
 
 x[1] = mar.left
-x[2] = 128/2
+x[1.5] = 128 * 2/5
+x[2] = 128 * 2/3
 y[1] = mar.top
-y[2] = mar.top + h*(1.5/8)
-y[3] = mar.top + h*(5.5/8)
-y[4] = mar.top + h*(7/8)
+y[3] = 64 - mar.bottom - 10
+y[4] = 64 - mar.bottom
 
 local e = {
     { x = x[1], y = y[1] },
-    { x = x[1], y = y[3] },
-    { x = x[2], y = y[3] },
+    { x = x[1], y = y[4] },
+    { x = x[2], y = y[4] },
 }
 local k = {
     {  },
-    { x = x[1], y = y[4] },
-    { x = x[2], y = y[4] },
+    -- { x = x[1.5], y = y[1] },
+    { x = x[2], y = y[1] },
+    { x = x[2] + 28, y = y[1] },
 }
 
 local function Control()
@@ -33,7 +34,7 @@ local function Control()
             },
         }
         _screen.list{
-            x = e[props.n].x, y = e[props.n].y,
+            x = e[props.n].x, y = e[props.n].y, margin = 3,
             text = { 
                 [props.label or props.id] = util.round(params:get(props.id), props.round or 0.01) 
             },
@@ -54,7 +55,7 @@ local function Option()
             state_remainder = { remainder, function(v) remainder = v end }
         }
         _screen.list{
-            x = e[props.n].x, y = e[props.n].y,
+            x = e[props.n].x, y = e[props.n].y, margin = 3,
             text = { [props.label or props.id] = params:string(props.id) },
         }
     end
@@ -127,9 +128,9 @@ Pages['C'] = function()
     local _clock, _vol1, _vol2 = Control(), Control(), Control()
 
     return function()
-        _clock{ id = 'clock mult', label = 'clock', n = 1, round = 0.001 }
-        _vol1{ id = 'vol 1', n = 2 } 
-        _vol2{ id = 'vol 2', n = 3 } 
+        _clock{ id = 'clock mult', label = 'clk', n = 1, round = 0.001 }
+        _vol1{ id = 'vol 1', n = 2, label = 'vol1' } 
+        _vol2{ id = 'vol 2', n = 3, label = 'vol2' } 
     end
 end
 
@@ -137,18 +138,18 @@ Pages['R'] = function()
     local _rr, _r1, _r2 = Option(), Option(), Option()
 
     return function()
-        _rr{ id = 'rate rec', n = 1 }
-        _r1{ id = 'rate 1', n = 2 }
-        _r2{ id = 'rate 2', n = 3 }
+        _rr{ id = 'rate rec', n = 1, label = 'rate r' }
+        _r1{ id = 'rate 1', n = 2, label = 'rate1' }
+        _r2{ id = 'rate 2', n = 3, label = 'rate2' }
     end
 end
 Pages['>'] = function()
     local _frr, _f1r, _f2r = Control(), Control(), Control()
 
     return function()
-        _frr{ id = 'rec > rec', n = 1 }
-        _f1r{ id = '1 > rec', n = 2 }
-        _f2r{ id = '2 > rec', n = 3 }
+        _frr{ id = 'rec > rec', n = 1, label = 'r > r' }
+        _f1r{ id = '1 > rec', n = 2, label = '1 > r' }
+        _f2r{ id = '2 > rec', n = 3, label = '2 > r' }
     end
 end
 Pages['F'] = function()
@@ -189,12 +190,14 @@ local function Norns()
             state = { page, function(v) page = v; crops.dirty.screen = true end },
         }
         _screen.list{
-            x = k[2].x, y = k[2].y, margin = 3,
+            x = k[2].x, y = k[2].y, margin = 2,
             text = pages, focus = page,
         }
 
         _freeze_clear{
-            n = 3, id_toggle = 'freeze', id_hold = 'clear',
+            n = 3, 
+            id_toggle = 'freeze', id_hold = 'clear', 
+            label_toggle = 'frz', label_hold = 'clr'
         }
     end
 end

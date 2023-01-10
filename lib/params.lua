@@ -54,21 +54,21 @@ end
 local rates = {
     [1] = {
         k = { 
-            '1/2x', '1x', '2x', '3x', '4x', '5x', '6x'
+            '1/2', '1', '2', '3', '4', '5', '6'
         },
         v = { 0.5, 1, 2, 3, 4, 5, 6 }
     },
     [2] = {
         k = { 
-            '-6x', '-5x', '-4x', '-3x', '-2x', '-1x', '-1/2x', '1/2x', '1x', '2x', '3x', '4x', '5x', '6x'
+            '-6', '-5', '-4', '-3', '-2', '-1', '-1/2', '1/2', '1', '2', '3', '4', '5', '6'
         },
         v = { -6, -5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5, 6 }
     },
     rec = {
         k = { 
-            '0x', 
-            -- '1/2x', 
-            '1x', '2x', '3x', '4x' 
+            '0', 
+            -- '1/2', 
+            '1', '2', '3', '4' 
         },
         v = { 
             0, 
@@ -107,7 +107,7 @@ do
     end
     params:add{
         type='option', id = 'rate rec',
-        options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
+        options = rates.rec.k, default = tab.key(rates.rec.k, '1'),
         action = function(i)
             rate[3] = rates.rec.v[i]; update_rate()
             crops.dirty.screen = true
@@ -116,7 +116,7 @@ do
     for idx = 1,2 do
         params:add{
             type = 'option', id = 'rate '..idx,
-            options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
+            options = rates[idx].k, default = tab.key(rates[idx].k, '1'),
             action = function(i)
                 rate[idx] = rates[idx].v[i]; update_rate()
                 crops.dirty.screen = true
@@ -452,8 +452,8 @@ do
     }
 end
     
-params:set('rate 1', tab.key(rates[1].k, '2x'))
-params:set('rate 2', tab.key(rates[2].k, '-1/2x'))
+params:set('rate 1', tab.key(rates[1].k, '2'))
+params:set('rate 2', tab.key(rates[2].k, '-1/2'))
 params:set('vol 1', 0.5)
 params:set('vol rec', 0)
 params:set('rec > rec', 0.5)
