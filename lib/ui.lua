@@ -162,10 +162,10 @@ Pages['F'] = function()
 end
 
 local function Norns()
-    local pagenames = { 'C', 'R', '>', 'F' }
+    local pages_all = { 'C', 'R', '>', 'F' }
     local _pages = {}
 
-    for i, name in ipairs(pagenames) do
+    for i, name in ipairs(pages_all) do
         _pages[i] = Pages[name]()
     end
 
@@ -180,15 +180,17 @@ local function Norns()
             state = { alt, function(v) alt = v; crops.dirty.screen = true end },
         }
 
-        _pages[page]()
+        local pages = { 'C', 'R', '>', params:string('state') == 'enabled' and 'F' or nil }
+
+        _pages[util.wrap(page, 1, #pages)]()
 
         _key.integer{
-            n_next = 2, min = 1, max = #pagenames,
+            n_next = 2, min = 1, max = #pages,
             state = { page, function(v) page = v; crops.dirty.screen = true end },
         }
         _screen.list{
             x = k[2].x, y = k[2].y, margin = 3,
-            text = pagenames, focus = page,
+            text = pages, focus = page,
         }
 
         _freeze_clear{

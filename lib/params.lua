@@ -382,13 +382,38 @@ do
     local both = { 'hp', 'lp' }
     local defaults = { hp = 0, lp = 1 }
 
-    for i = 1,2 do
-        stereo('post_filter_dry', i, 0)
-        stereo('post_filter_'..post, i, 1)
-    end
     stereo('pre_filter_fc_mod', 3, 0)
-    stereo('pre_filter_dry', 3, 0)
-    stereo('pre_filter_'..pre, 3, 1)
+
+    do
+        local states = { 'enabled', 'bypass' }
+        params:add{
+            id = 'state', type = 'option', options = states,
+            action = function(v)
+                local dry, wet, action
+
+                if states[v] == 'enabled' then
+                    dry, wet = 0, 1
+                    action = 'show'
+                elseif states[v] == 'bypass' then
+                    dry, wet = 1, 0
+                    action = 'hide'
+                end
+
+                for i = 1,2 do
+                    stereo('post_filter_dry', i, dry)
+                    stereo('post_filter_'..post, i, wet)
+                end
+                stereo('pre_filter_dry', 3, dry)
+                stereo('pre_filter_'..pre, 3, wet)
+
+                for _,id in ipairs{ 'hp', 'lp', 'q' } do
+                    params[action](params, id)
+                end
+                _menu.rebuild_params() --questionable?
+            end
+
+        }
+    end
 
     for i,filter in ipairs(both) do
         local pre = filter==pre
