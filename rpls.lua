@@ -54,5 +54,5 @@ function init()
 end
 
 function cleanup()
-    params:write()
+    if params:string('autosave pset') == 'yes' then params:write() end
 end

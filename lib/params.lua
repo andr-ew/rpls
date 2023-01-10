@@ -511,12 +511,47 @@ do
         end
     }
 end
+
+local function defaults()
+    params:set('rate 1', tab.key(rates[1].k, '2'))
+    params:set('rate 2', tab.key(rates[2].k, '-1/2'))
+    params:set('vol 1', 0.5)
+    params:set('vol rec', 0)
+    params:set('rec > rec', 0.5)
+    params:set('hp', 0.25)
+    params:set('lp', 0.8)
+end
+defaults()
     
-params:set('rate 1', tab.key(rates[1].k, '2'))
-params:set('rate 2', tab.key(rates[2].k, '-1/2'))
-params:set('vol 1', 0.5)
-params:set('vol rec', 0)
-params:set('rec > rec', 0.5)
+--add pset params
+do
+    params:add_separator('pset')
+
+    params:add{
+        id = 'reset all params', type = 'binary', behavior = 'trigger',
+        action = function()
+            for _,p in ipairs(params.params) do if p.save then
+                params:set(p.id, p.default or (p.controlspec and p.controlspec.default) or 0, true)
+            end end
+
+            defaults()
+    
+            params:bang()
+        end
+    }
+    params:add{
+        id = 'overwrite default pset', type = 'binary', behavior = 'trigger',
+        action = function()
+            params:write()
+        end
+    }
+    params:add{
+        id = 'autosave pset', type = 'option', options = { 'yes', 'no' },
+        action = function()
+            params:write()
+        end
+    }
+end
 
 local function post_init()
     params:set('freeze', 0)
