@@ -1,6 +1,6 @@
 # patch notes
 
-## spiral
+## spiraling
 
 subdivide & layer recent past arpeggiations and spiral upward. slight feedback from play head 2 (with a -2/1 ratio) creates an upward pitch & rhythm cascade by octaves, with playback direction flipping at each additional layer.
 
