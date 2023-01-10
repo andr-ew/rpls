@@ -22,8 +22,6 @@ for idx = 1,3 do
     stereo('recpre_slew_time', idx, 0.1)
 
     local off = (idx - 1) * 2
-    softcut.pan(off + 1, -1)
-    softcut.pan(off + 2, 1)
     softcut.buffer(off + 1, 1)
     softcut.buffer(off + 2, 2)
 end
@@ -274,6 +272,22 @@ do
     }
 end
 
+local output_route = 'stereo'
+local feedback = { 0, 0, 0 }
+
+local function update_feedback(idx)
+    local off = (idx - 1) * 2
+    local v = feedback[idx]
+
+    if output_route == 'stereo' then
+        softcut.level_cut_cut(1 + off, 2 + 4, v)
+        softcut.level_cut_cut(2 + off, 1 + 4, v)
+    elseif route == 'split' then
+        softcut.level_cut_cut(1 + off, 1 + 4, v)
+        softcut.level_cut_cut(2 + off, 2 + 4, v)
+    end
+end
+
 params:add_separator('feedback')
 for _,idx in pairs{ 3, 1, 2 } do
     local off = (idx - 1) * 2
@@ -282,9 +296,7 @@ for _,idx in pairs{ 3, 1, 2 } do
     params:add{
         type = 'control', id = name..' > rec', controlspec = cs.def{ default = 0 },
         action = function(v)
-            softcut.level_cut_cut(1 + off, 2 + 4, v)
-            softcut.level_cut_cut(2 + off, 1 + 4, v)
-            -- stereo('pre_level', idx, v)
+            feedback[idx] = v; update_feedback(idx)
             
             crops.dirty.screen = true
         end
@@ -311,37 +323,71 @@ params:add{
     end
 }
 
-params:add_separator('mix')
-for idx = 1,3 do
-    local off = (idx - 1) * 2
-    local name = idx==3 and 'rec' or idx
+local levels = { 1, 1, 1 }
 
-    local pan = 0
-    local lvl = 1
-    local update = function()
-        local p, v = pan, lvl
+local update_level = function(idx)
+    local off = (idx - 1) * 2
+    local p, v = 0, levels[idx]
+
+    if output_route == 'stereo' then
+        softcut.pan(off + 1, -1)
+        softcut.pan(off + 2, 1)
+
         if idx==1 then p = -p end
         softcut.level(off + 1, v * ((p > 0) and 1 - p or 1))
         softcut.level(off + 2, v * ((p < 0) and 1 + p or 1))
-    end
-
-    params:add{
-        type='control', id = 'vol '..name,
-        controlspec = cs.def { default = 1 },
-        action = function(v) 
-            lvl = v; update() 
-            crops.dirty.screen = true
+    elseif output_route == 'split' then
+        softcut.pan(off + 1, ({ -1, 1, 0 })[idx])
+        softcut.pan(off + 2, 0)
+        
+        if idx==3 then 
+            softcut.level(off + 1, 0)
+        else
+            softcut.level(off + 1, v)
         end
-    }
+        softcut.level(off + 2, 0)
+    end
+end
+
+params:add_separator('output')
+do
+    for idx = 1,3 do
+        local off = (idx - 1) * 2
+        local name = idx==3 and 'rec' or idx
+
+        params:add{
+            type='control', id = 'vol '..name,
+            controlspec = cs.def { default = 1 },
+            action = function(v) 
+                levels[idx] = v; update_level(idx)
+
+                crops.dirty.screen = true
+            end
+        }
+        -- params:add{
+        --     type='control', id = 'pan '..name,
+        --     controlspec = cs.def { min = -1, max = 1, default = 0 },
+        --     action = function(v) 
+        --         pan = v; update() 
+        --         crops.dirty.screen = true
+        --     end
+        -- }
+    end
+    
+    local or_op = { 'stereo', 'split' } 
     params:add{
-        type='control', id = 'pan '..name,
-        controlspec = cs.def { min = -1, max = 1, default = 0 },
+        type = 'option', id = 'output routing', options = or_op, name = 'routing',
         action = function(v) 
-            pan = v; update() 
-            crops.dirty.screen = true
+            output_route = or_op[v]
+            for i = 1,3 do
+                update_feedback(i)
+                update_level(i)
+            end
         end
     }
 end
+
+params:add_separator('input')
 do
     local idx = 3
     local off = (idx - 1) * 2
@@ -365,11 +411,11 @@ do
     end
     local ir_op = { 'stereo', 'mono' } 
     params:add{
-        type = 'option', id = 'input routing', options = ir_op,
+        type = 'option', id = 'input routing', options = ir_op, name = 'routing',
         action = function(v) route = ir_op[v]; update() end
     }
     params:add{
-        type = 'control', id = 'input pan', 
+        type = 'control', id = 'input pan', name = 'pan',
         controlspec = cs.def{ min = -1, max = 1, default = 0.7 },
         action = function(v) pan = v; update() end
     }
