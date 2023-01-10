@@ -280,11 +280,15 @@ local function update_feedback(idx)
     local v = feedback[idx]
 
     if output_route == 'stereo' then
+        softcut.level_cut_cut(1 + off, 1 + 4, 0)
+        softcut.level_cut_cut(2 + off, 2 + 4, 0)
         softcut.level_cut_cut(1 + off, 2 + 4, v)
         softcut.level_cut_cut(2 + off, 1 + 4, v)
-    elseif route == 'split' then
+    elseif output_route == 'split' then
         softcut.level_cut_cut(1 + off, 1 + 4, v)
         softcut.level_cut_cut(2 + off, 2 + 4, v)
+        softcut.level_cut_cut(1 + off, 2 + 4, 0)
+        softcut.level_cut_cut(2 + off, 1 + 4, 0)
     end
 end
 
@@ -370,8 +374,13 @@ local update_level = function(idx)
     local p, v = 0, levels[idx]
 
     if output_route == 'stereo' then
-        softcut.pan(off + 1, -1)
-        softcut.pan(off + 2, 1)
+        if idx==1 then
+            softcut.pan(off + 1, 1)
+            softcut.pan(off + 2, -1)
+        else
+            softcut.pan(off + 1, -1)
+            softcut.pan(off + 2, 1)
+        end
 
         if idx==1 then p = -p end
         softcut.level(off + 1, v * ((p > 0) and 1 - p or 1))
@@ -510,9 +519,6 @@ params:set('vol rec', 0)
 params:set('rec > rec', 0.5)
 
 local function post_init()
-    softcut.pan(2, -1)
-    softcut.pan(1, 1)
-
     params:set('freeze', 0)
 end
 
