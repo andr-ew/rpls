@@ -436,6 +436,8 @@ do
     local defaults = { hp = 0, lp = 1 }
 
     stereo('pre_filter_fc_mod', 3, 0)
+    stereo('pre_filter_dry', 3, 0)
+    stereo('pre_filter_'..pre, 3, 1)
 
     do
         local states = { 'enabled', 'bypass' }
@@ -456,12 +458,8 @@ do
                     stereo('post_filter_dry', i, dry)
                     stereo('post_filter_'..post, i, wet)
                 end
-                stereo('pre_filter_dry', 3, dry)
-                stereo('pre_filter_'..pre, 3, wet)
 
-                for _,id in ipairs{ 'hp', 'lp', 'q' } do
-                    params[action](params, id)
-                end
+                params[action](params, 'lp')
                 _menu.rebuild_params() --questionable?
             end
 
