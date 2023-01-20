@@ -175,6 +175,8 @@ local function Norns()
     local page = 1
     local alt = 0
 
+    local _gfx = Gfx()
+
     return function()
         _key.momentary{
             n = 1,
@@ -199,6 +201,8 @@ local function Norns()
             id_toggle = 'freeze', id_hold = 'clear', 
             label_toggle = 'frz', label_hold = 'clr'
         }
+
+        _gfx()
     end
 end
 

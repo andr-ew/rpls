@@ -32,6 +32,7 @@ _screen = include 'lib/crops/routines/screen'
 
 --include script libs
 
+gfx, Gfx = include 'lib/graphics'             --screen graphics data & component
 local post_init = include 'lib/params'        --add params
 App = {}
 App.norns = include 'lib/ui'                  --norns UI component
