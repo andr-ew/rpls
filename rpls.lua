@@ -32,6 +32,25 @@ _screen = include 'lib/crops/routines/screen'
 
 --script globals
 
+rates = {
+    [1] = {
+        k = { '1/2', '1', '2', '3', '4', '5', '6' },
+        v = { 0.5, 1, 2, 3, 4, 5, 6 }
+    },
+    [2] = {
+        k = { '-6', '-5', '-4', '-3', '-2', '-1', '-1/2', '1/2', '1', '2', '3', '4', '5', '6' },
+        v = { -6, -5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5, 6 }
+    },
+    rec = {
+        k = { '0', '1', '2', '3', '4' },
+        v = { 0, 1, 2, 3, 4 }
+    }
+}
+function get_rate(idx)
+    local k = (idx==3) and 'rec' or idx
+    return rates[k].v[params:get('rate '..k)]
+end
+
 heads = { 1, 2, 3 }
 
 loop_points = {}

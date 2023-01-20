@@ -49,33 +49,6 @@ for idx = 1,2 do
     -- stereo('pre_level', idx, 0.75)
 end
 
-local rates = {
-    [1] = {
-        k = { 
-            '1/2', '1', '2', '3', '4', '5', '6'
-        },
-        v = { 0.5, 1, 2, 3, 4, 5, 6 }
-    },
-    [2] = {
-        k = { 
-            '-6', '-5', '-4', '-3', '-2', '-1', '-1/2', '1/2', '1', '2', '3', '4', '5', '6'
-        },
-        v = { -6, -5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5, 6 }
-    },
-    rec = {
-        k = { 
-            '0', 
-            -- '1/2', 
-            '1', '2', '3', '4' 
-        },
-        v = { 
-            0, 
-            -- 0.5, 
-            1, 2, 3, 4 
-        }
-    }
-}
-
 params:add_separator('rate')
 do
     local slew
@@ -148,11 +121,6 @@ do
             crops.dirty.screen = true
         end
     }
-end
-
-local function get_rate(idx)
-    local k = (idx==3) and 'rec' or idx
-    return rates[k].v[params:get('rate '..k)]
 end
 
 params:add_separator('clock')
@@ -232,7 +200,7 @@ do
             end
             tick_all = tick_all + quant
 
-            tick_tri = (tick_tri + (quant / (math.max(beats, quant*1.2) * 3))) % 1
+            tick_tri = (tick_tri + (quant / (math.max(beats, quant*1.2) * 3)))
 
             crops.dirty.screen = true
         end
