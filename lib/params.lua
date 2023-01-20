@@ -157,12 +157,6 @@ end
 
 params:add_separator('clock')
 do
-    local heads = { 1, 2, 3 }
-    local loop_points = {}
-    for i = 1,3 do 
-        loop_points[i] = { 0, 0 } 
-    end
-
     local function set_loop_points(t)
         local mar = (0.5*2) + (5*3)
         for i = 1,3 do
@@ -194,14 +188,10 @@ do
         end
     }
 
-
     for i = 1,3 do
         stereo('loop_start', i, 0)
         stereo('loop_end', i, buf_time)
     end
-    
-    local tick = { 100, 100, 100 }
-    local tick_all = 100
 
     local function res(i)
         local st = loop_points[heads[i]][1] --- 0.1
@@ -241,6 +231,10 @@ do
                 tick[i] = tick[i] + (quant * rate)
             end
             tick_all = tick_all + quant
+
+            tick_tri = (tick_tri + (quant / (math.max(beats, quant*1.2) * 3))) % 1
+
+            crops.dirty.screen = true
         end
     end)
 

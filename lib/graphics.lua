@@ -1,5 +1,3 @@
-local gfx = {}
-
 local PI, TAU = math.pi, 2 * math.pi
 
 local function poly_points(args)
@@ -66,21 +64,46 @@ local function _point(props)
         screen.stroke()
     end
 end
+    
+-- softcut.event_position(function(i, secs)
+--     local st = loop_points[heads[i]][1]
+--     local en = loop_points[heads[i]][2] + 0.14
+
+--     local ph = (secs - st) / (en - st)
+--     phase[i] = ph
+-- end)
 
 local function Gfx()
     return function()
         local pts = poly_points{
-            faces = 3, x = 128/2, y = 64/2, r = 32, rotation = TAU * 1.3/3,
+            faces = 3, x = 128/2, y = 64/2, r = 32, 
+            rotation = TAU * (1 - tick_tri),
         }
 
-        for i = 1,3 do
-            _edge{ points = pts, n = i, level = i==3 and 1 or 4 }
+        for vc = 1,3 do
+            local head = 3 - heads[vc] + 1
+
+                _edge{ 
+                    points = pts, n = head, 
+                    level = util.round(vc==3 and (
+                        1 + params:get('vol rec') * 4
+                    ) or (
+                        3 + params:get('vol '..vc) * 2
+                    ))
+                }
         end
 
-        _point{ points = pts, n = 1, x = 0.5, level = 15 }
-        _point{ points = pts, n = 2, x = 0.25, level = 15 }
-        _point{ points = pts, n = 3, x = 0.75, level = 15 }
+        for vc = 1,3 do
+            if params:get('freeze') == 0 or vc ~= 3 then
+                local head = 3 - heads[vc] + 1
+                local st = loop_points[head][1]
+                local en = loop_points[head][2] + 0.14
+                local ph = math.min(tick[vc] / (en - st), 1)
+            
+                _point{ points = pts, n = head, x = ph, level = 15 }
+            end
+        end
     end
 end
 
-return gfx, Gfx
+return Gfx

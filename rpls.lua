@@ -30,10 +30,21 @@ _enc = include 'lib/crops/routines/enc'
 _key = include 'lib/crops/routines/key'
 _screen = include 'lib/crops/routines/screen'
 
+--script globals
+
+heads = { 1, 2, 3 }
+
+loop_points = {}
+for i = 1,3 do loop_points[i] = { 0, 0 } end
+
+tick = { 100, 100, 100 }
+tick_all = 100
+tick_tri = 0
+
 --include script libs
 
-gfx, Gfx = include 'lib/graphics'             --screen graphics data & component
-local post_init = include 'lib/params'        --add params
+Gfx = include 'lib/graphics'                  --screen graphics component
+local post_init = include 'lib/params'        --add params & softcut functionality
 App = {}
 App.norns = include 'lib/ui'                  --norns UI component
 
@@ -43,7 +54,7 @@ _app = { norns = App.norns() }
 
 crops.connect_enc(_app.norns)
 crops.connect_key(_app.norns)
-crops.connect_screen(_app.norns)
+crops.connect_screen(_app.norns, 60)
 
 --norns globals
 
