@@ -131,11 +131,12 @@ local function Gfx()
     return function()
         local pts = poly_points{
             faces = 3, x = 128/2, y = 64/2, r = 32, 
-            rotation = TAU * (1 - tick_tri),
+            --rotation = TAU * (1 - tick_tri),
+            rotation = TAU * (1 - 0.4/3),
         }
 
         for vc = 1,3 do
-            local head = 3 - heads[vc] + 1
+            local head = 3 - ({ 3, 1, 2 })[vc] + 1
 
             _edge{ 
                 points = pts, n = head, 
@@ -149,13 +150,13 @@ local function Gfx()
 
         for vc = 1,3 do
             if params:get('freeze') == 0 or vc ~= 3 then
-                local head = 3 - heads[vc] + 1
+                local head = 3 - ({ 3, 1, 2 })[vc] + 1
                 local st = loop_points[head][1]
                 local en = loop_points[head][2] + 0.14
                 local ph = math.min(tick[vc] / (en - st), 1)
                 local pos = get_rate(vc) > 0 and ph or 1-ph
             
-                _point{ points = pts, n = head, x = pos, level = 15 }
+                _point{ points = pts, n = head, x = 0.5, level = 15 }
             end
         end
 
