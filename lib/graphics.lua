@@ -98,7 +98,36 @@ do
     end
 end
 
+local function Capture()
+    local count = 1
+    local done = false
+
+    local dir = '/home/we/dust/'..norns.state.shortname..'_capture_'..os.time()..'/'
+    if not util.file_exists(dir) then
+        util.make_dir(dir)
+    end
+
+    return function(props)
+        if crops.device == 'screen' and crops.mode == 'redraw' then
+            if props.cond and not done then
+                _norns.screen_export_png(dir..'frame'..string.format('%.4i', count)..'.png')
+                count = count + 1
+            elseif not done then
+                print('PNG sequence written to '..dir..' !')
+                print([[
+                    after you've converted with norns-convert_screenshots.bash, use gifski to convert frames to gif:
+
+                    gifski --fps 30 -o clip.gif frame*.png
+                ]])
+                done = true
+            end
+        end
+    end
+end
+
 local function Gfx()
+    -- local _cap = Capture()
+
     return function()
         local pts = poly_points{
             faces = 3, x = 128/2, y = 64/2, r = 32, 
@@ -141,6 +170,8 @@ local function Gfx()
                 }
             end
         end
+
+        -- _cap{ cond = tick_tri <= 1 }
     end
 end
 
