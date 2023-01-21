@@ -1,31 +1,22 @@
 # rpls
-tidal repitch echo /
-phonetic fracture prism
+
+varispeed multitap echo. 3 taps – including one record tap – cycle through 3 buffers. alter the rate of each playback tap independently from the record tap  to create sliced rhyhtmic & harmonic counterpoint from a simple input signal, free of tape-head-collision clicks.
+
+a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliterate), inspired by strymon magneto.
 
 currently in beta - any & all feedback is highly appreciated! feel free to create an issue here or send me an email andrewcshike@gmail.com :) (email is usually the best way to reach me). if you're running into trouble, be sure to check out the [issues](https://github.com/andr-ew/ndls/issues) section to see if your issue has already been logged ~
 
-## doc
+## hardware
 
-- **K2-K3**: page
-- **E1-E3**: various
-- **K1**: alt
+**required**
 
-time flows thru 3 pools.
-the first reads, 
-the others write.
-set the rate & size of 
-these pools to draw
-concentric prisms.
-
-( ok it's a bit like a multi-tap 
-delay, but each tap plays 
-back at a different rate )
-
-a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliterate)
-
-## requirements
-- norns (210927)
+- [norns](https://github.com/p3r7/awesome-monome-norns) (210927 or later)
 - audio input
 
 ## install
-`;install https://github.com/andr-ew/rpls`
+
+```
+~
+```
+
+## norns
