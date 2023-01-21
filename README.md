@@ -25,8 +25,17 @@ currently in beta - any & all feedback is highly appreciated! feel free to creat
 
 ## norns UI
 
-### introduction
+### intro
 
 ![the triangle at the center of the rpls script. 3 dots on the edges are labelled 'rec head', 'play head 1', 'play head 2'. the rotating edges of the triangle are labelled 'buffers'](/lib/doc/img/rpls-02.png)
+
+### page `C`
+
+### page `R`
+
+### page `>`
+
+### page `F`
+
 
 ## additional params
