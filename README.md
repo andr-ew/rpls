@@ -29,8 +29,6 @@ currently in beta - any & all feedback is highly appreciated! feel free to creat
 
 ![the triangle at the center of the rpls script. 3 dots on the edges are labelled 'rec head', 'play head 1', 'play head 2'. the rotating edges of the triangle are labelled 'buffers'. K2 & K3 are labelled](/lib/doc/img/rpls-02.png)
 
-norns' keys are mapped in the top right:
-
 - **K2:** increment page
 - **K3:** freeze, buffers will loop the current contents. hold to clear.
 
@@ -94,9 +92,15 @@ note that the range of **rate 1** on the negative side has been reduced to preve
 
 ![page > of rpls, E1-3 are labelled](/lib/doc/img/rpls-04.png)
 
-- **E1:**
-- **E3:**
-- **E3:**
+- **E1:** feedback, record head back into record head
+- **E3:** feedback, playhead 1 to record head
+- **E3:** feedback, playhead 2 to record head
+
+the **rec > rec** feedback path resembles the decay control of a typical delay. increase to add echo tails or overdubs. there's also a ping-pong effect at play, mirroring the stereo field on each pass.
+
+feedback paths involving the play heads lead to continuously transposed overdubs at the respective rate ratio. a rhythmic/harmonic [shepard tone](https://en.wikipedia.org/wiki/Shepard_tone) !
+
+**IMPORTANT:** be careful with high values on multiple feedback paths - if all three feedback values add up to be greater than 1.0, volume will quickly grow out of control.
 
 ### page `F`
 
