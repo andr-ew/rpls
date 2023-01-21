@@ -86,7 +86,7 @@ with **rate > 1**, many more relationships are available, including common just-
 | +- 6          | 5           | + min 3rd           | 6:5        |
 | +- 4          | 5           | - min 3rd           | 4:5        |
 
-((pls let me know if I got any of this wrong, lol))
+((pls let me know if I got any of this wrong, music is hard))
 
 note that the range of **rate 1** on the negative side has been reduced to prevent collisions with the adjacent record head. 
 
