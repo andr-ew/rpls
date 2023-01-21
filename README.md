@@ -4,7 +4,7 @@
 </p>
 <br>
 
-varispeed multitap echo. 3 taps (1 recording, 2 playing) cycle through 3 buffers. alter the rate of each playback tap independently from the record tap  to create sliced rhythmic & harmonic counterpoint from a simple input signal, free of tape head collisions & audible clicks.
+varispeed multitap echo. 3 taps (1 recording, 2 playing) cycle through 3 buffers. alter the rate of each playback tap independently from the record tap  to create sliced rhythmic & harmonic counterpoint from a single input signal, free of tape head collisions & audible clicks.
 
 a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliterate), inspired by strymon magneto.
 
