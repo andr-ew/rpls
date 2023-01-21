@@ -106,8 +106,21 @@ feedback paths involving the play heads lead to continuously transposed overdubs
 
 ![page F of rpls, E1-3 are labelled](/lib/doc/img/rpls-05.png)
 
-- **E1:**
-- **E3:**
-- **E3:**
+- **E1:** resonnance of both filters
+- **E3:** cutoff of the highpass filter, effects input only
+- **E3:** cutoff of the lowpass filter, effects output only (both playheads)
+
+**IMPORTANT:** be careful with high resonnace values - the highpass filter feeds back into the record head, so the input filter can easily self-oscillate & create loud sounds
 
 ## additional params
+
+a few more params can be accessed via the params menu:
+
+- **rate / slew:** slew of all rate controls. note: higher values can cause artifacts in the buffer when modulating **rate rec**, these can sometimes get a little loud.
+- **rate / ~:** momentary pitch wobble
+- **clock / fade:** crossfade time for tapehead jumps. this has a particular effect on texture for very fast clock speeds.
+- **clock / reset:** instantly jump to the next buffer. this can be useful for aligning the phase of rpls' clock with a synchronous input signal.
+- **input / routing:** stereo/mono input setting
+- **input / pan:** pan the input signal. effectively sets the width of the ping-pong effect.
+- **output / routing:** the 'split' mode turns rpls into a dual mono effect. play heads 1 & 2 will be sent individually out of norns outs L & R for independent external processing
+- **filter / state:** disables the the lowpass filter. useful if you want to use rpls with external filters rather than the internal one.
