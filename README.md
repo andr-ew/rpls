@@ -1,6 +1,6 @@
 # rpls
 
-varispeed multitap echo. 3 taps – including one record tap – cycle through 3 buffers. alter the rate of each playback tap independently from the record tap  to create sliced rhyhtmic & harmonic counterpoint from a simple input signal, free of tape-head-collision clicks.
+varispeed multitap echo. 3 taps (one recording, two playing) cycle through 3 buffers. alter the rate of each playback tap independently from the record tap  to create sliced rhyhtmic & harmonic counterpoint from a simple input signal, free of tape-head-collision clicks.
 
 a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliterate), inspired by strymon magneto.
 
