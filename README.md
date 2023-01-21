@@ -27,7 +27,16 @@ currently in beta - any & all feedback is highly appreciated! feel free to creat
 
 ### intro
 
-![the triangle at the center of the rpls script. 3 dots on the edges are labelled 'rec head', 'play head 1', 'play head 2'. the rotating edges of the triangle are labelled 'buffers'](/lib/doc/img/rpls-02.png)
+![the triangle at the center of the rpls script. 3 dots on the edges are labelled 'rec head', 'play head 1', 'play head 2'. the rotating edges of the triangle are labelled 'buffers'. K2 & K3 label the page & freeze controls](/lib/doc/img/rpls-02.png)
+
+norns' keys are mapped in the top right:
+
+- **K2**: increment page
+- **K3**: freeze, buffers will loop the current contents. hold to clear.
+
+the rotating triangle in the center of the screen illustrates the tape process powering rpls. each side of the triangle represents a buffer. one of the sides (dimly lit) is always having audio written to it by the record head. after writing to one side, the rec head cycles to the next one. at the same time, the two playheads are playing back the recorded material from the other two sides of the triangle. 
+
+since the play heads never cross over the record head in the same buffer, they can play back recently recorded material at any speed & pitch without causing clicks.
 
 ### page `C`
 
