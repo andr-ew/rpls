@@ -70,15 +70,15 @@ do
     local r_limit_lower = 3
     local r_limit_upper = 256
 
-    local function draw(direction, faces, x, y, fb_vc, outer_r, outer_rate, outer_lvl)
-        local inner_r = direction<0 and (
+    local function draw(ratio, faces, x, y, outer_r, outer_rate, outer_lvl)
+        local inner_r = math.abs(ratio) > 1 and (
             outer_r * math.sin(TAU / 12)
         ) or (
             outer_r / math.sin(TAU / 12)
         )
 
         if inner_r >= r_limit_lower and inner_r <= r_limit_upper then
-            local inner_rate = outer_rate * (get_rate(fb_vc) / get_rate(3))
+            local inner_rate = outer_rate * ratio
             local inner_lvl = outer_lvl * outer_lvl
 
             _polygon{
@@ -86,18 +86,17 @@ do
                 rotation = TAU * (1 - tick_tri) * inner_rate,
             }
 
-            draw(direction, faces, x, y, fb_vc, inner_r, inner_rate, inner_lvl)
+            draw(ratio, faces, x, y, inner_r, inner_rate, inner_lvl)
         end
     end
 
     _recur_poly = function(props)
         draw(
-            props.direction, props.faces, props.x, props.y, 
-            props.feedback_voice, props.r, 1, props.feedback
+            props.ratio, props.faces, props.x, props.y, 
+            props.r, 1, props.feedback
         )
     end
 end
-
 
 local function Gfx()
     return function()
@@ -131,14 +130,17 @@ local function Gfx()
             end
         end
 
-        _recur_poly{
-            direction = -1, faces = 3, x = 128/2, y = 64/2, r = 32, 
-            feedback = 0.9, feedback_voice = 1, 
-        }
-        _recur_poly{
-            direction = 1, faces = 3, x = 128/2, y = 64/2, r = 32, 
-            feedback = 0.9, feedback_voice = 2, 
-        }
+        for i = 1,2 do 
+            local fb = params:get(i..' > rec')
+            local ratio = get_rate(i) / get_rate(3)
+
+            if fb > 0 and math.abs(ratio) ~= 1 then
+                _recur_poly{
+                    faces = 3, x = 128/2, y = 64/2, r = 32, 
+                    ratio = ratio, feedback = math.log(1 + fb, 2)
+                }
+            end
+        end
     end
 end
 

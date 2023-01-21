@@ -200,7 +200,9 @@ do
             end
             tick_all = tick_all + quant
 
-            tick_tri = (tick_tri + (quant / (math.max(beats, quant*1.2) * 3)))
+            if params:get('freeze') == 0 then
+                tick_tri = (tick_tri + (quant / (math.max(beats, quant*1.2) * 3)))
+            end
 
             crops.dirty.screen = true
         end
@@ -274,8 +276,6 @@ params:add{
         stereo('pre_level', 3, froze)
         stereo('rec_level', 3, ~ froze & 1)
 
-        print('frozen', froze)
-        
         crops.dirty.screen = true
     end
 }
