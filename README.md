@@ -45,10 +45,13 @@ since the play heads never cross over the record head in the same buffer, they c
 - **E3:** volume of playhead 2
 
 the **clock mult** param offers different windows into rpls depending on its use:
-  - **low values, < 1:** pseudo-granular textures.
-  - **mid values, 1 - 2:** chopped delay
-  - **whole number values (1.0, 2.0...):** delay synced to the global clock
-  - **large values, > 2:** chopped tape loops
+
+| range                             | use case                         |
+| ---                               | ---                              |
+| low values, < 1                   | pseudo-granular textures         |
+| mid values, 1 - 2                 | chopped delay                    |
+| whole number values (1.0, 2.0...) | delay synced to the global clock |
+| large values, > 2                 | chopped tape loops               |
 
 ### page `R`
 
