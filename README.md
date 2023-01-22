@@ -121,7 +121,7 @@ a few more params can be accessed exclusively in the params menu:
 
 ### rate
 
-- **slew:** slew of all rate controls. note: higher values can cause artifacts in the buffer when modulating **rate rec**, these can sometimes get a little loud.
+- **slew:** slew of all rate controls. note: higher values can cause artifacts in the buffer when modulating **rate rec**, these can sometimes feed back & get a little loud.
 - **~:** momentary pitch wobble
 
 ### clock
