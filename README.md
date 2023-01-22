@@ -136,6 +136,7 @@ a few more params can be accessed exclusively in the params menu:
 
 ### output
 
+- **vol rec:** raise to hear playback straight from the record head. this will generally be the same pitch as the input material. rec output is not lowpass filtered.
 - **routing:** the 'split' mode turns rpls into a dual mono effect. play heads 1 & 2 will be sent individually out of norns outs L & R for independent external processing
 
 ### filter
