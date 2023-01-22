@@ -61,7 +61,7 @@ the **clock mult** param offers different windows into rpls depending on its use
 - **E3:** rate of play head 1
 - **E3:** rate of pay head 2
 
-rates 1 & 2 effectively set the _rate_, _pitch_, & _direction_ of playback for the playheads' repsective buffer slices. the actual playback rate of a playhead will always depend on the _ratio_ between that play head & the record head.
+rates effectively set the _tempo_, _pitch_, & _direction_ of playback for the tape heads' repsective buffer slices. the actual playback rate of a playhead will always depend on the _ratio_ between that play head & the record head.
 
 assuming **rate r = 1**, the following rhythmic & harmonic relationships are available:
 
