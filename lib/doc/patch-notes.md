@@ -7,6 +7,7 @@ with **clock mult** near-minimum, rpls traverses into the texural domain, formin
 **key settings**
 - clock tempo: 120bpm
 - clock mult: low, 0.0 - 1.0. affects grain size, very expressive.
+- fade: 0.01 - 0.04. grain "envelope", affects texture.
 - mix
   - vol 1: 0.8
   - vol 2: 1.0
