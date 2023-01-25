@@ -1,5 +1,30 @@
 # patch notes
 
+## bad at dancing
+
+in rhythmic scenarios, playing an instrument into rpls is almost like having a digital companion playing along with you at divisions & multiples of the tempo. try playing your instrument into rpls and matching up your tempo with that of rpls (it's ok to dance).
+
+**input:** small percussive instrument
+
+**key settings**
+- clock tempo: 60bpm, or whatever tempo you're feeling
+- clock mult: 1.0, or whatever tempo you're feeling
+- mix
+  - vol 1: 0.5
+  - vol 2: 1.0
+- feedback
+  - rec > rec: 0.5
+  - 1 > rec: 0
+  - 2 > rec: 0
+- rates
+  - rate rec: 1
+  - rate 1: 2
+  - rate 2: -1/2
+- filter
+  - hp: 0.25
+  - lp: 0.8
+  - q: 0.4
+
 ## steam grains
 
 with **clock mult** near-minimum, rpls traverses into the texural domain, forming a cloud of reipitched grains around the input signal. play with **clock mult** to affect grain size, and **fade** to effect pseudo-envelope quality & texture.
