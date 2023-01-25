@@ -22,8 +22,6 @@ for idx = 1,3 do
     stereo('recpre_slew_time', idx, 0.1)
 
     local off = (idx - 1) * 2
-    softcut.pan(off + 1, -1)
-    softcut.pan(off + 2, 1)
     softcut.buffer(off + 1, 1)
     softcut.buffer(off + 2, 2)
 end
@@ -50,33 +48,6 @@ for idx = 1,2 do
     -- stereo('rec', idx, 1)
     -- stereo('pre_level', idx, 0.75)
 end
-
-local rates = {
-    [1] = {
-        k = { 
-            '1/2x', '1x', '2x', '3x', '4x', '5x', '6x'
-        },
-        v = { 0.5, 1, 2, 3, 4, 5, 6 }
-    },
-    [2] = {
-        k = { 
-            '-6x', '-5x', '-4x', '-3x', '-2x', '-1x', '-1/2x', '1/2x', '1x', '2x', '3x', '4x', '5x', '6x'
-        },
-        v = { -6, -5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5, 6 }
-    },
-    rec = {
-        k = { 
-            '0x', 
-            -- '1/2x', 
-            '1x', '2x', '3x', '4x' 
-        },
-        v = { 
-            0, 
-            -- 0.5, 
-            1, 2, 3, 4 
-        }
-    }
-}
 
 params:add_separator('rate')
 do
@@ -107,17 +78,19 @@ do
     end
     params:add{
         type='option', id = 'rate rec',
-        options = rates.rec.k, default = tab.key(rates.rec.k, '1x'),
+        options = rates.rec.k, default = tab.key(rates.rec.k, '1'),
         action = function(i)
             rate[3] = rates.rec.v[i]; update_rate()
+            crops.dirty.screen = true
         end
     }
     for idx = 1,2 do
         params:add{
             type = 'option', id = 'rate '..idx,
-            options = rates[idx].k, default = tab.key(rates[idx].k, '1x'),
+            options = rates[idx].k, default = tab.key(rates[idx].k, '1'),
             action = function(i)
                 rate[idx] = rates[idx].v[i]; update_rate()
+                crops.dirty.screen = true
             end
         }
     end
@@ -126,6 +99,7 @@ do
         controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
         action = function(v)
             slew = v; update_slew()
+            crops.dirty.screen = true
         end
     }
     params:add{
@@ -144,46 +118,51 @@ do
                 sl()
                 update_rate()
             end
+            crops.dirty.screen = true
         end
     }
-end
-
-local function get_rate(idx)
-    local k = (idx==3) and 'rec' or idx
-    return rates[k].v[params:get('rate '..k)]
 end
 
 params:add_separator('clock')
 do
-    local loop_points = {}
-    for i = 1,3 do loop_points[i] = { 0, 0 } end
+    local function set_loop_points(t)
+        local mar = (0.5*2) + (5*3)
+        for i = 1,3 do
+            loop_points[i][1] = (i - 1) * (mar)
+            loop_points[i][2] = (i - 1) * (mar) + t
+        end
+    end
 
-    local heads = { 1, 2, 3 }
-    local time = 1
+    local beats = 1
 
+    local quant_secs = 0.005
+    local quant
+
+    function clock.tempo_change_handler(bpm)
+        local beat_sec = 60 / bpm
+        quant = quant_secs / beat_sec
+        
+        set_loop_points(beats * beat_sec)
+    end
+    clock.tempo_change_handler(clock.get_tempo())
+    
     params:add{
-        type='control', id='time',
-        controlspec = cs.def{ min = 0.001/3, max = 2, default = 1 },
+        type = 'control', id = 'clock mult',
+        controlspec = cs.def { 
+            min = 0, max = 8, default = 2, quantum = 1/4/32,
+        },
         action = function(v)
-            time = util.round(v, 0.001)
-
-            local mar = (0.5*2) + (5*3)
-            for i = 1,3 do
-                loop_points[i][1] = (i - 1) * (mar)
-                loop_points[i][2] = (i- 1) * (mar) + time
-            end
+            beats = math.max(v, quant)
+            set_loop_points(beats * clock.get_beat_sec())
+            
+            crops.dirty.screen = true
         end
     }
-
 
     for i = 1,3 do
         stereo('loop_start', i, 0)
         stereo('loop_end', i, buf_time)
     end
-    
-    local tick = { 100, 100, 100 }
-    local tick_all = 100
-    local quant = 0.005
 
     local function res(i)
         local st = loop_points[heads[i]][1] --- 0.1
@@ -203,9 +182,11 @@ do
         end
         tick_all = 0
     end
-    
+   
     clock.run(function()
         while true do
+            local time = beats
+
             if tick_all >= time then
                 resall()
             else
@@ -214,13 +195,19 @@ do
                 end
             end
             
-            clock.sleep(quant)
+            clock.sync(quant)
 
             for i = 1,3 do 
                 local rate = math.abs(get_rate(i))
                 tick[i] = tick[i] + (quant * rate)
             end
             tick_all = tick_all + quant
+
+            if params:get('freeze') == 0 then
+                tick_tri = (tick_tri + (quant / (math.max(beats, quant*1.2) * 3)))
+            end
+
+            crops.dirty.screen = true
         end
     end)
 
@@ -238,14 +225,38 @@ do
                 play_mar = v
                 rec_mar = v*2
             end
+            
+            crops.dirty.screen = true
         end
     }
     params:add{
         type = 'binary', behavior = 'trigger', id = 'reset',
         action = function()
             resall()
+            
+            crops.dirty.screen = true
         end
     }
+end
+
+local output_route = 'stereo'
+local feedback = { 0, 0, 0 }
+
+local function update_feedback(idx)
+    local off = (idx - 1) * 2
+    local v = feedback[idx]
+
+    if output_route == 'stereo' then
+        softcut.level_cut_cut(1 + off, 1 + 4, 0)
+        softcut.level_cut_cut(2 + off, 2 + 4, 0)
+        softcut.level_cut_cut(1 + off, 2 + 4, v)
+        softcut.level_cut_cut(2 + off, 1 + 4, v)
+    elseif output_route == 'split' then
+        softcut.level_cut_cut(1 + off, 1 + 4, v)
+        softcut.level_cut_cut(2 + off, 2 + 4, v)
+        softcut.level_cut_cut(1 + off, 2 + 4, 0)
+        softcut.level_cut_cut(2 + off, 1 + 4, 0)
+    end
 end
 
 params:add_separator('feedback')
@@ -254,11 +265,11 @@ for _,idx in pairs{ 3, 1, 2 } do
     local name = idx==3 and 'rec' or idx
 
     params:add{
-        type = 'control', id = name..' -> rec', controlspec = cs.def{ default = 0 },
+        type = 'control', id = name..' > rec', controlspec = cs.def{ default = 0 },
         action = function(v)
-            softcut.level_cut_cut(1 + off, 2 + 4, v)
-            softcut.level_cut_cut(2 + off, 1 + 4, v)
-            -- stereo('pre_level', idx, v)
+            feedback[idx] = v; update_feedback(idx)
+            
+            crops.dirty.screen = true
         end
     }
 end
@@ -267,70 +278,127 @@ params:add{
     action = function(froze)
         stereo('pre_level', 3, froze)
         stereo('rec_level', 3, ~ froze & 1)
+
+        crops.dirty.screen = true
     end
 }
 params:add{
     type = 'binary', behavior = 'trigger', id = 'clear',
     action = function()
         softcut.buffer_clear()
+        params:set('freeze', 0)
+
+        crops.dirty.screen = true
     end
 }
 
-params:add_separator('mix')
-for idx = 1,3 do
+local input_route = 'stereo'
+local input_pan = 0
+local function update_input_pan()
+    local idx = 3
     local off = (idx - 1) * 2
-    local name = idx==3 and 'rec' or idx
+    local v = 1
+    local p = output_route == 'split' and -1 or input_pan
 
-    local pan = 0
-    local lvl = 1
-    local update = function()
-        local p, v = pan, lvl
-        if idx==1 then p = -p end
-        softcut.level(off + 1, v * ((p > 0) and 1 - p or 1))
-        softcut.level(off + 2, v * ((p < 0) and 1 + p or 1))
+    if input_route == 'stereo' then
+        softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
+        softcut.level_input_cut(2, off + 1, 0)
+        softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
+        softcut.level_input_cut(1, off + 2, 0)
+    elseif input_route == 'mono' then
+        softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
+        softcut.level_input_cut(1, off + 2, v * ((p < 0) and 1 + p or 1))
+        softcut.level_input_cut(2, off + 1, v * ((p > 0) and 1 - p or 1))
+        softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
     end
-
-    params:add{
-        type='control', id = 'vol '..name,
-        controlspec = cs.def { default = 1 },
-        action = function(v) lvl = v; update() end
-    }
-    params:add{
-        type='control', id = 'pan '..name,
-        controlspec = cs.def { min = -1, max = 1, default = 0 },
-        action = function(v) pan = v; update() end
-    }
 end
+
+params:add_separator('input')
 do
     local idx = 3
     local off = (idx - 1) * 2
 
-    local route = 'stereo'
-    local pan = 0
-    local function update()
-        local v, p = 1, pan
-
-        if route == 'stereo' then
-            softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
-            softcut.level_input_cut(2, off + 1, 0)
-            softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
-            softcut.level_input_cut(1, off + 2, 0)
-        elseif route == 'mono' then
-            softcut.level_input_cut(1, off + 1, v * ((p > 0) and 1 - p or 1))
-            softcut.level_input_cut(1, off + 2, v * ((p < 0) and 1 + p or 1))
-            softcut.level_input_cut(2, off + 1, v * ((p > 0) and 1 - p or 1))
-            softcut.level_input_cut(2, off + 2, v * ((p < 0) and 1 + p or 1))
-        end
-    end
     local ir_op = { 'stereo', 'mono' } 
     params:add{
-        type = 'option', id = 'input routing', options = ir_op,
-        action = function(v) route = ir_op[v]; update() end
+        type = 'option', id = 'input routing', options = ir_op, name = 'routing',
+        action = function(v) 
+            input_route = ir_op[v]; update_input_pan() 
+        end
     }
     params:add{
-        type = 'control', id = 'input pan', 
+        type = 'control', id = 'input pan', name = 'pan',
         controlspec = cs.def{ min = -1, max = 1, default = 0.7 },
-        action = function(v) pan = v; update() end
+        action = function(v) input_pan = v; update_input_pan() end
+    }
+end
+
+local levels = { 1, 1, 1 }
+
+local update_level = function(idx)
+    local off = (idx - 1) * 2
+    local p, v = 0, levels[idx]
+
+    if output_route == 'stereo' then
+        if idx==1 then
+            softcut.pan(off + 1, 1)
+            softcut.pan(off + 2, -1)
+        else
+            softcut.pan(off + 1, -1)
+            softcut.pan(off + 2, 1)
+        end
+
+        if idx==1 then p = -p end
+        softcut.level(off + 1, v * ((p > 0) and 1 - p or 1))
+        softcut.level(off + 2, v * ((p < 0) and 1 + p or 1))
+    elseif output_route == 'split' then
+        softcut.pan(off + 1, ({ -1, 1, 0 })[idx])
+        softcut.pan(off + 2, 0)
+        
+        if idx==3 then 
+            softcut.level(off + 1, 0)
+        else
+            softcut.level(off + 1, v)
+        end
+        softcut.level(off + 2, 0)
+    end
+end
+
+params:add_separator('output')
+do
+    for idx = 1,3 do
+        local off = (idx - 1) * 2
+        local name = idx==3 and 'rec' or idx
+
+        params:add{
+            type='control', id = 'vol '..name,
+            controlspec = cs.def { default = 1 },
+            action = function(v) 
+                levels[idx] = v; update_level(idx)
+
+                crops.dirty.screen = true
+            end
+        }
+        -- params:add{
+        --     type='control', id = 'pan '..name,
+        --     controlspec = cs.def { min = -1, max = 1, default = 0 },
+        --     action = function(v) 
+        --         pan = v; update() 
+        --         crops.dirty.screen = true
+        --     end
+        -- }
+    end
+    
+    local or_op = { 'stereo', 'split' } 
+    params:add{
+        type = 'option', id = 'output routing', options = or_op, name = 'routing',
+        action = function(v) 
+            output_route = or_op[v]
+            for i = 1,3 do
+                update_feedback(i)
+                update_level(i)
+            end
+            update_input_pan()
+        end
     }
 end
 
@@ -341,13 +409,36 @@ do
     local both = { 'hp', 'lp' }
     local defaults = { hp = 0, lp = 1 }
 
-    for i = 1,2 do
-        stereo('post_filter_dry', i, 0)
-        stereo('post_filter_'..post, i, 1)
-    end
     stereo('pre_filter_fc_mod', 3, 0)
     stereo('pre_filter_dry', 3, 0)
     stereo('pre_filter_'..pre, 3, 1)
+
+    do
+        local states = { 'enabled', 'bypass' }
+        params:add{
+            id = 'state', type = 'option', options = states,
+            action = function(v)
+                local dry, wet, action
+
+                if states[v] == 'enabled' then
+                    dry, wet = 0, 1
+                    action = 'show'
+                elseif states[v] == 'bypass' then
+                    dry, wet = 1, 0
+                    action = 'hide'
+                end
+
+                for i = 1,2 do
+                    stereo('post_filter_dry', i, dry)
+                    stereo('post_filter_'..post, i, wet)
+                end
+
+                params[action](params, 'lp')
+                _menu.rebuild_params() --questionable?
+            end
+
+        }
+    end
 
     for i,filter in ipairs(both) do
         local pre = filter==pre
@@ -359,11 +450,13 @@ do
                 pre and (
                     function(v) 
                         stereo('pre_filter_fc', 3, util.linexp(0, 1, 2, 20000, v)) 
+                        crops.dirty.screen = true
                     end
                 ) or (
                     function(v) 
                         for i = 1,2 do
                             stereo('post_filter_fc', i, util.linexp(0, 1, 2, 20000, v)) 
+                            crops.dirty.screen = true
                         end
                     end
                 )
@@ -378,20 +471,54 @@ do
                 stereo('post_filter_rq', i, util.linexp(0, 1, 0.01, 20, 1 - v))
             end
             stereo('pre_filter_rq', 3, util.linexp(0, 1, 0.01, 20, 1 - v))
+            
+            crops.dirty.screen = true
         end
     }
 end
+
+local function defaults()
+    params:set('rate 1', tab.key(rates[1].k, '2'))
+    params:set('rate 2', tab.key(rates[2].k, '-1/2'))
+    params:set('vol 1', 0.5)
+    params:set('vol rec', 0)
+    params:set('rec > rec', 0.5)
+    params:set('hp', 0.25)
+    params:set('lp', 0.8)
+end
+defaults()
     
-params:set('rate 1', tab.key(rates[1].k, '2x'))
-params:set('rate 2', tab.key(rates[2].k, '-1/2x'))
-params:set('vol 1', 0.5)
-params:set('vol rec', 0)
-params:set('rec -> rec', 0.5)
+--add pset params
+do
+    params:add_separator('pset')
+
+    params:add{
+        id = 'reset all params', type = 'binary', behavior = 'trigger',
+        action = function()
+            for _,p in ipairs(params.params) do if p.save then
+                params:set(p.id, p.default or (p.controlspec and p.controlspec.default) or 0, true)
+            end end
+
+            defaults()
+    
+            params:bang()
+        end
+    }
+    params:add{
+        id = 'overwrite default pset', type = 'binary', behavior = 'trigger',
+        action = function()
+            params:write()
+        end
+    }
+    params:add{
+        id = 'autosave pset', type = 'option', options = { 'yes', 'no' },
+        action = function()
+            params:write()
+        end
+    }
+end
 
 local function post_init()
-    softcut.pan(2, -1)
-    softcut.pan(1, 1)
-
     params:set('freeze', 0)
 end
 

@@ -1,231 +1,209 @@
+local x,y = {}, {}
+
+local mar = { left = 0, top = 7, right = 2, bottom = 2 }
+local w = 128 - mar.left - mar.right
+local h = 64 - mar.top - mar.bottom
+
+x[1] = mar.left
+x[1.5] = 128 * 2/5
+x[2] = 128 * 2/3
+y[1] = mar.top
+y[3] = 64 - mar.bottom - 10
+y[4] = 64 - mar.bottom
+
 local e = {
     { x = x[1], y = y[1] },
-    { x = x[1], y = y[3] },
-    { x = x[2], y = y[3] },
-}
-local k = {
-    {  },
     { x = x[1], y = y[4] },
     { x = x[2], y = y[4] },
 }
+local k = {
+    {  },
+    -- { x = x[1.5], y = y[1] },
+    { x = x[2], y = y[1] },
+    { x = x[2] + 28, y = y[1] },
+}
+
+local function Control()
+    return function(props)
+        _enc.control{
+            n = props.n, 
+            controlspec = params:lookup_param(props.id).controlspec,
+            state = {
+                params:get(props.id), 
+                params.set, params, props.id,
+            },
+        }
+        _screen.list{
+            x = e[props.n].x, y = e[props.n].y, margin = 3,
+            text = { 
+                [props.label or props.id] = util.round(params:get(props.id), props.round or 0.01) 
+            },
+        }
+    end
+end
+local function Option()
+    local remainder = 0.0
+
+    return function(props)
+        _enc.integer{
+            n = props.n, 
+            min = 1, max = #params:lookup_param(props.id).options,
+            state = {
+                params:get(props.id), 
+                params.set, params, props.id,
+            },
+            state_remainder = { remainder, function(v) remainder = v end }
+        }
+        _screen.list{
+            x = e[props.n].x, y = e[props.n].y, margin = 3,
+            text = { [props.label or props.id] = params:string(props.id) },
+        }
+    end
+end
+local function ToggleHold()
+    local downtime = nil
+    local blink = false
+    local blink_level = 2
+
+    return function(props)
+        if crops.device == 'key' and crops.mode == 'input' then
+            local n, z = table.unpack(crops.args) 
+
+            if n == props.n then
+                if z==1 then
+                    downtime = util.time()
+                elseif z==0 then
+                    if downtime and ((util.time() - downtime) > 0.5) then 
+                        blink = true
+                        blink_level = 1
+                        crops.dirty.screen = true
+
+                        clock.run(function() 
+                            clock.sleep(0.1)
+                            blink_level = 2
+                            crops.dirty.screen = true
+
+                            params:delta(props.id_hold)
+
+                            clock.sleep(0.2)
+                            blink_level = 1
+                            crops.dirty.screen = true
+
+                            clock.sleep(0.4)
+                            blink = false
+                            crops.dirty.screen = true
+                        end)
+                    else
+                        _key.toggle{
+                            n = props.n, edge = 'falling',
+                            state = {
+                                params:get(props.id_toggle), 
+                                params.set, params, props.id_toggle,
+                            },
+                        }
+                    end
+                    
+                    downtime = nil
+                end
+            end
+        end
+
+        _screen.text{
+            x = k[props.n].x, y = k[props.n].y,
+            text = blink and (
+                props.label_hold or props.id_hold
+            ) or (
+                props.label_toggle or props.id_toggle
+            ),
+            level = ({ 4, 15 })[
+                blink and blink_level or (params:get(props.id_toggle) + 1)
+            ],
+        }
+    end
+end
 
 local Pages = {}
-local Altpages = {}
 
-local function ctl(_comp, i, id, lab)
-    lab = lab or id
-    _comp{
-        n = i, x = e[i].x, y = e[i].y,
-        label = lab, 
-        state = of.param(id),
-        controlspec = of.controlspec(id),
-    }
-end
-
-Pages[1] = function()
-    local _time = Text.enc.control()
-    local _vol = { Text.enc.control(), Text.enc.control() }
+Pages['C'] = function()
+    local _clock, _vol1, _vol2 = Control(), Control(), Control()
 
     return function()
-        ctl(_time, 1, 'time')
-
-        for i = 1,2 do
-            ctl(_vol[i], i+1, 'vol '..i)
-        end
-    end
-end
-local function Tap()
-    local _tap = Text.key.trigger()
-
-    local tap_blink = 0
-    local tap_clock = nil
-    local tap_buf = {}
-
-    return function()
-        _tap{
-            n = 2, x = k[2].x, y = k[2].y, label = 'tap',
-            lvl = tap_blink*11 + 4,
-            action = function(_, _, t)
-                if t < 1 and t > 0 then
-                    table.insert(tap_buf, t)
-                    if #tap_buf > 2 then table.remove(tap_buf, 1) end
-
-                    local avg = 0
-                    for i,v in ipairs(tap_buf) do avg = avg + v end
-                    avg = avg / #tap_buf
-
-                    params:set('time', avg)
-
-                    if tap_clock then clock.cancel(tap_clock) end
-                    tap_clock = clock.run(function() 
-                        while true do
-                            tap_blink = 1; redraw()
-                            clock.sleep(avg*0.5)
-                            tap_blink = 0; redraw()
-                            clock.sleep(avg*0.5)
-                        end
-                    end)
-                else
-                    tap_buf = {}
-                    if tap_clock then clock.cancel(tap_clock) end
-                    tap_clock = nil
-                    tap_blink = 0
-                end
-            end
-        }
-    end
-end
-Altpages[1] = function()
-    local _volrec = Text.enc.control()
-    local _fade = Text.enc.control()
-    local _slew = Text.enc.control()
-
-    local _tap = Tap()
-    local _res = Text.key.trigger()
-
-    return function()
-        ctl(_volrec, 1, 'vol rec')
-        ctl(_fade, 2, 'fade')
-        ctl(_slew, 3, 'slew')
-
-        _tap{}
-        _res{
-            n = 3, x = k[3].x, y = k[3].y, label = 'reset',
-            state = of.param('reset')
-        }
+        _clock{ id = 'clock mult', label = 'clk', n = 1, round = 0.001 }
+        _vol1{ id = 'vol 1', n = 2, label = 'vol1' } 
+        _vol2{ id = 'vol 2', n = 3, label = 'vol2' } 
     end
 end
 
-Pages[2] = function()
-    local _raterec = Text.enc.number()
-    local _rateplay = { Text.enc.number(), Text.enc.number() }
+Pages['R'] = function()
+    local _rr, _r1, _r2 = Option(), Option(), Option()
 
     return function()
-        _raterec{
-            n = 1, x = e[1].x, y = e[1].y,
-            label = 'rate rec', 
-            state = of.param('rate rec'),
-            min = 1, inc = 1,
-            max = #params:lookup_param('rate rec').options,
-            formatter = function(v)
-                return params:lookup_param('rate rec').options[v]
-            end,
-        }
-        for i = 1,2 do
-            _rateplay[i]{
-                n = 1+i, x = e[1+i].x, y = e[1+i].y,
-                label = 'rate '..i,
-                state = of.param('rate '..i),
-                min = 1, inc = 1,
-                max = #params:lookup_param('rate '..i).options,
-                formatter = function(v)
-                    return params:lookup_param('rate '..i).options[v]
-                end,
-            }
-        end
+        _rr{ id = 'rate rec', n = 1, label = 'rate r' }
+        _r1{ id = 'rate 1', n = 2, label = 'rate1' }
+        _r2{ id = 'rate 2', n = 3, label = 'rate2' }
     end
 end
-Altpages[2] = function()
-    local _e1 = Text.enc.control()
-    local _e2 = Text.enc.control()
-    local _e3 = Text.enc.control()
-
-    local _k2 = Text.key.momentary()
-    local _k3 = { trig = Key.trigger(), lbl = Text.label() }
+Pages['>'] = function()
+    local _frr, _f1r, _f2r = Control(), Control(), Control()
 
     return function()
-        ctl(_e1, 1, 'rec -> rec')
-        ctl(_e2, 2, '1 -> rec')
-        ctl(_e3, 3, '2 -> rec')
+        _frr{ id = 'rec > rec', n = 1, label = 'r > r' }
+        _f1r{ id = '1 > rec', n = 2, label = '1 > r' }
+        _f2r{ id = '2 > rec', n = 3, label = '2 > r' }
+    end
+end
+Pages['F'] = function()
+    local _q, _hp, _lp = Control(), Control(), Control()
 
-        _k2{
-            n = 2, x = k[2].x, y = k[2].y, label = '~',
-            state = of.param('~')
-        }
-        local froze = params:get('freeze') > 0
-        _k3.trig{
-            n = 3,
-            action = function()
-                if not froze then
-                    params:set('freeze', 1)
-                else
-                    params:delta('clear')
-                    params:set('freeze', 0)
-                end
-                redraw()
-            end
-        }
-        _k3.lbl{
-             x = k[3].x, y = k[3].y, lvl = 4,
-             label = (not froze) and 'freeze' or 'clear'
-        }
+    return function()
+        _q{ id = 'q', n = 1 }
+        _hp{ id = 'hp', n = 2 }
+        _lp{ id = 'lp', n = 3 }
     end
 end
 
-Pages[3] = function()
-    local _q = Text.enc.control()
-    local _hp = Text.enc.control()
-    local _lp = Text.enc.control()
+local function Norns()
+    local pages_all = { 'C', 'R', '>', 'F' }
+    local _pages = {}
 
-    return function()
-        ctl(_q, 1, 'q')
-        ctl(_hp, 2, 'hp')
-        ctl(_lp, 3, 'lp')
+    for i, name in ipairs(pages_all) do
+        _pages[i] = Pages[name]()
     end
-end
-Altpages[3] = function()
-    local _e1 = Text.enc.control()
-    local _e2 = Text.enc.control()
-    local _e3 = Text.enc.control()
-    local _verbon = Text.key.toggle()
 
-    return function()
-        ctl(_e1, 1, 'rev_return_level', 'verb lvl')
-        ctl(_e2, 2, 'rev_cut_input', 'verb cut')
-        ctl(_e3, 3, 'rev_monitor_input', 'verb mon')
-
-        _verbon{
-            n = 2, x = k[2].x, y = k[2].y, label = 'verb on',
-            state = { params:get('reverb') - 1, function(v) params:set('reverb', v+1) end }
-        }
-    end
-end
-
-local function App()
-    _pages = {}
-    for i,Page in ipairs(Pages) do _pages[i] = Page() end
-    _altpages = {}
-    for i,Altpage in ipairs(Altpages) do _altpages[i] = Altpage() end
+    local _freeze_clear = ToggleHold()
 
     local page = 1
-    local _tab = Text.key.option()
-
     local alt = 0
-    local _alt = Key.momentary()
+
+    local _gfx = Gfx()
 
     return function()
-        _alt{
+        _key.momentary{
             n = 1,
-            state = { alt, function(v) alt = v; redraw() end },
+            state = { alt, function(v) alt = v; crops.dirty.screen = true end },
         }
 
-        if alt==0 then
-            _pages[page]{}
+        local pages = { 'C', 'R', '>', params:string('state') == 'enabled' and 'F' or nil }
 
-            _tab{
-                n = { 2, 3 }, x = { { 118-116 }, { 122-116 }, { 126-116 } }, y = 50, 
-                align = { 'right', 'bottom' },
-                font_size = 16, margin = 3,
-                options = { '.', '.', '.' },
-                state = { page, function(v) page = v end }
-            }
-        else
-            _altpages[page]{}
-        end
+        _pages[util.wrap(page, 1, #pages)]()
+
+        _key.integer{
+            n_next = 2, min = 1, max = #pages,
+            state = { page, function(v) page = v; crops.dirty.screen = true end },
+        }
+        _screen.list{
+            x = k[2].x, y = k[2].y, margin = 2,
+            text = pages, focus = page,
+        }
+
+        _freeze_clear{
+            n = 3, 
+            id_toggle = 'freeze', id_hold = 'clear', 
+            label_toggle = 'frz', label_hold = 'clr'
+        }
+
+        _gfx()
     end
 end
 
-local _app = App()
-nest.connect_enc(_app)
-nest.connect_key(_app)
-nest.connect_screen(_app)
+return Norns
