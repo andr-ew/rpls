@@ -2,9 +2,9 @@
 
 ## bad at dancing
 
-in rhythmic scenarios, playing an instrument into rpls is almost like having a digital companion playing along with you at divisions & multiples of the tempo. try playing your instrument into rpls and matching up your tempo with that of rpls (it's ok to dance).
+in rhythmic scenarios, playing an instrument into rpls is almost like having a digital companion playing along with you at divisions & multiples of the tempo. try playing your instrument and matching up your tempo with that of rpls (it's ok to dance).
 
-**input:** small percussive instrument
+**input:** small plucked or percussive instrument
 
 **key settings**
 - clock tempo: 60bpm, or whatever tempo you're feeling
