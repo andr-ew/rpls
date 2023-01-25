@@ -1,27 +1,11 @@
 -- rpls
 --
--- tidal repitch echo /
--- phonetic fracture prism
+-- varispeed multitap echo
 --
--- v0 @andrew
---
--- send audio in.
+-- v0.2-beta @andrew
 --
 -- K2-K3: page
 -- E1-E3: various
--- K1: alt
---
--- time flows thru 3 pools
--- the first reads, 
--- the others write
---
--- set the rate & size of 
--- these pools to draw
--- concentric prisms
---
--- ( ok it's a bit like a multi-tap 
--- delay, but each tap plays 
--- back at a different rate )
 
 --git submodule libs
 

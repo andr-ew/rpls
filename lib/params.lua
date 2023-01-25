@@ -129,7 +129,7 @@ do
         local mar = (0.5*2) + (5*3)
         for i = 1,3 do
             loop_points[i][1] = (i - 1) * (mar)
-            loop_points[i][2] = (i- 1) * (mar) + t
+            loop_points[i][2] = (i - 1) * (mar) + t
         end
     end
 
@@ -139,14 +139,17 @@ do
     local quant
 
     function clock.tempo_change_handler(bpm)
-        quant = quant_secs / (60 / bpm)
+        local beat_sec = 60 / bpm
+        quant = quant_secs / beat_sec
+        
+        set_loop_points(beats * beat_sec)
     end
     clock.tempo_change_handler(clock.get_tempo())
     
     params:add{
         type = 'control', id = 'clock mult',
         controlspec = cs.def { 
-            min = 0, max = 8, default = 1, quantum = 1/8/16,
+            min = 0, max = 8, default = 2, quantum = 1/4/32,
         },
         action = function(v)
             beats = math.max(v, quant)

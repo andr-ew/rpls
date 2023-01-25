@@ -121,9 +121,8 @@ local function Gfx()
         for vc = 1,3 do
             if params:get('freeze') == 0 or vc ~= 3 then
                 local head = 3 - heads[vc] + 1
-                local st = loop_points[head][1]
-                local en = loop_points[head][2] + 0.14
-                local ph = math.min(tick[vc] / (en - st), 1)
+                local beats = params:get('clock mult')
+                local ph = math.min(tick[vc] / beats, 1)
                 local pos = get_rate(vc) > 0 and ph or 1-ph
             
                 _point{ points = pts, n = head, x = pos, level = 15 }
