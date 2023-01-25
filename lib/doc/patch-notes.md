@@ -1,5 +1,28 @@
 # patch notes
 
+## steam grains
+
+with **clock mult** near-minimum, rpls traverses into the texural domain, forming a cloud of reipitched grains around the input signal. play with **clock mult** to affect grain size, and **fade** to effect pseudo-envelope quality & texture.
+
+**key settings**
+- clock tempo: 120bpm
+- clock mult: low, 0.0 - 1.0. affects grain size, very expressive.
+- mix
+  - vol 1: 0.8
+  - vol 2: 1.0
+- feedback
+  - rec > rec: mid, 0.5-0.77
+  - 1 > rec: 0
+  - 2 > rec: 0
+- rates
+  - rate rec: 1
+  - rate 1: 2
+  - rate 2: -1/2
+- filter
+  - hp: 0.25
+  - lp: 0.5 - 0.7
+  - q: high, 0.6. emphasizes texture.
+
 ## spiraling
 
 subdivide & layer recent past arpeggiations and spiral upward. slight feedback from play head 2 (with a -2/1 ratio) creates an upward pitch & rhythm cascade by octaves, with playback direction flipping at each additional layer.
@@ -8,19 +31,19 @@ subdivide & layer recent past arpeggiations and spiral upward. slight feedback f
 
 **key settings**
 - clock tempo: 48bpm
-- rates. divide each rate by 2 to hear more recent, less layered slices of the past
-  - rate rec: 2x
-  - rate 1: 1x
-  - rate 2: -4x
 - clock mult: 1.0. increase to other whole number values to loop longer slices of the arp.
-- feedback
-  - rec > rec: low, around 0.1
-  - 1 > rec: 0
-  - 2 > rec: very low, around 0.02. increase to raise the volume of octave pitch cascade.
 - mix
   - vol 1: 1.0
   - vol 2: 0.5
   - vol rec: 0.22
+- rates. divide each rate by 2 to hear more recent, less layered slices of the past
+  - rate rec: 2
+  - rate 1: 1
+  - rate 2: -4
+- feedback
+  - rec > rec: low, around 0.1
+  - 1 > rec: 0
+  - 2 > rec: very low, around 0.02. increase to raise the volume of octave pitch cascade.
 - filter
   - hp: 0.25
   - lp: 0.7. set brightness of octave pitch cascade.
@@ -34,19 +57,19 @@ variation of [spiraling](#spiraling), with an upward cascade at the ratio of 3/2
 
 **key settings**
 - clock tempo: 45bpm
-- rates
-  - rate rec: 2x
-  - rate 1: 3x
-  - rate 2: -2x
 - clock mult: 1.0. increase to other whole number values to loop longer slices of the arp.
-- feedback
-  - rec > rec: very low, around 0.01
-  - 1 > rec: very low, around 0.05. increase to raise the volume of cascade.
-  - 2 > rec: 0
 - mix
   - vol 1: 1.0
   - vol 2: 0.5
   - vol rec: 0.22
+- rates
+  - rate rec: 2
+  - rate 1: 3
+  - rate 2: -2
+- feedback
+  - rec > rec: very low, around 0.01
+  - 1 > rec: very low, around 0.05. increase to raise the volume of cascade.
+  - 2 > rec: 0
 - filter
   - hp: 0.25
   - lp: 0.7. set brightness of octave pitch cascade.
