@@ -62,50 +62,50 @@ local function Option()
 end
 local function ToggleHold()
     local downtime = nil
-    local z = 0
     local blink = false
     local blink_level = 2
 
     return function(props)
-        _key.momentary{
-            n = props.n,
-            state = { z, function(v) z = v end }
-        }
+        if crops.device == 'key' and crops.mode == 'input' then
+            local n, z = table.unpack(crops.args) 
 
-        if z==1 then
-            downtime = util.time()
-        elseif z==0 then
-            if downtime and ((util.time() - downtime) > 0.5) then 
-                blink = true
-                blink_level = 1
-                crops.dirty.screen = true
+            if n == props.n then
+                if z==1 then
+                    downtime = util.time()
+                elseif z==0 then
+                    if downtime and ((util.time() - downtime) > 0.5) then 
+                        blink = true
+                        blink_level = 1
+                        crops.dirty.screen = true
 
-                clock.run(function() 
-                    clock.sleep(0.1)
-                    blink_level = 2
-                    crops.dirty.screen = true
+                        clock.run(function() 
+                            clock.sleep(0.1)
+                            blink_level = 2
+                            crops.dirty.screen = true
 
-                    params:delta(props.id_hold)
+                            params:delta(props.id_hold)
 
-                    clock.sleep(0.2)
-                    blink_level = 1
-                    crops.dirty.screen = true
+                            clock.sleep(0.2)
+                            blink_level = 1
+                            crops.dirty.screen = true
 
-                    clock.sleep(0.4)
-                    blink = false
-                    crops.dirty.screen = true
-                end)
-            else
-                _key.toggle{
-                    n = props.n, edge = 'falling',
-                    state = {
-                        params:get(props.id_toggle), 
-                        params.set, params, props.id_toggle,
-                    },
-                }
+                            clock.sleep(0.4)
+                            blink = false
+                            crops.dirty.screen = true
+                        end)
+                    else
+                        _key.toggle{
+                            n = props.n, edge = 'falling',
+                            state = {
+                                params:get(props.id_toggle), 
+                                params.set, params, props.id_toggle,
+                            },
+                        }
+                    end
+                    
+                    downtime = nil
+                end
             end
-            
-            downtime = nil
         end
 
         _screen.text{
