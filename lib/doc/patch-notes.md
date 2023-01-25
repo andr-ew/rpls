@@ -4,7 +4,7 @@
 
 with **clock mult** near-minimum, rpls traverses into the texural domain, forming a cloud of reipitched grains around the input signal. play with **clock mult** to affect grain size, and **fade** to effect pseudo-envelope quality & texture.
 
-**input:** slow attack chords with lots of noise
+**input:** long envelope chords with lots of noise
 
 **key settings**
 - clock tempo: 120bpm. affects grain size.
