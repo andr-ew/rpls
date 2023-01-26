@@ -20,7 +20,7 @@ currently in beta - any & all feedback is highly appreciated! feel free to creat
 ## install
 
 ```
-~
+;install https://github.com/andr-ew/rpls/releases/download/v0.2-beta/complete-source-code.zip
 ```
 
 ## norns UI
