@@ -50,7 +50,7 @@ the **clock mult** param offers different windows into rpls depending on its use
 | ---                               | ---                              |
 | low values, < 1                   | pseudo-granular textures         |
 | mid values, 1 - 2                 | chopped delay                    |
-| whole number values (1.0, 2.0...) | delay synced to the global clock |
+| whole number values (1.0, 2.0...) | syced rhythmic delay             |
 | large values, > 2                 | chopped tape loops               |
 
 ### page `R`
