@@ -110,8 +110,8 @@ feedback paths involving the play heads lead to continuously transposed overdubs
 ![page F of rpls, E1-3 are labelled](/lib/doc/img/rpls-05.png)
 
 - **E1:** resonnance of both filters
-- **E3:** cutoff of the highpass filter, effects input only
-- **E3:** cutoff of the lowpass filter, effects output only (both playheads)
+- **E3:** cutoff of the highpass filter, affects input only
+- **E3:** cutoff of the lowpass filter, affects output only (both playheads)
 
 **IMPORTANT:** be careful with high resonnace values - the highpass filter feeds back into the record head, so the input filter can easily self-oscillate & create loud sounds
 
