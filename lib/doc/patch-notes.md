@@ -100,7 +100,7 @@ variation of [spiraling](#spiraling), with an upward cascade at the ratio of 3/2
   - 2 > rec: 0
 - filter
   - hp: 0.25
-  - lp: 0.7. set brightness of octave pitch cascade.
+  - lp: 0.7. set brightness of pitch cascade.
   - q: 0.7. adjusts icyness
 
 
