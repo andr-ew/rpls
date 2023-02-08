@@ -61,7 +61,7 @@ subdivide & layer recent past arpeggiations and spiral upward. slight feedback f
 
 [video]
 
-variation of [spiraling](#spiraling), with an upward cascade at the ratio of 3/2. harmonies ascend in accordance with the circle of fifths while polyrythmic counterpoint begins at 3:2 and grows both faster & more complex with each additional feedback layer.
+variation of [spiraling](#spiraling), with an upward cascade at a ratio of 3/2. harmonies ascend in accordance with the circle of fifths while polyrythmic counterpoint begins at 3:2 and grows both faster & more complex with each additional feedback layer.
 
 **input:** plucked synthesizer arpeggio, synced to global clock
 
