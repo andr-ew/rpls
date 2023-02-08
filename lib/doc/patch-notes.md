@@ -121,7 +121,7 @@ with **clock mult** near-minimum, rpls traverses into the texural domain, formin
 
 the **freeze** button allows rpls to dip their toes into the varispeed looping universe 🔂. while playing with long delay lines, listen for just the right moment to jam K3 and loop the moment indefinitely. use rpls as a choppy rhymic base – add additional layers with a second looper, or keep adding on in rpls by increasing **rec -> rec** feedback to 1.0 and unfreezing tempararily to accept more layers of sound while retaining the current conent.
 
-**key settings***
+**key settings**
 - clock mult: 4.0. decrease to subdivide loop.
 - freeze: ON. toggle OFF to fade out or add additional layers, depending on **rec > rec**.
 - mix
