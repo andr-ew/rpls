@@ -15,6 +15,10 @@ a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliter
 
 ## install
 
+install from the maiden catalog
+
+or
+
 in the maiden REPL, type:
 
 ```
