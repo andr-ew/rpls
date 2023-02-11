@@ -1,8 +1,6 @@
 <h1 align="center">RPLS</h1>
-<p align="center">
-  <img src="https://raw.githubusercontent.com/andr-ew/rpls/v1/lib/doc/img/rpls.gif" alt="rpls screen animated gif. a triangle rotates on a black screen with dots represending tapeheads running across each edge of the triangle. the rpls main UI components surround the triangle, params: clk, vol1, vol2"/>
-</p>
-<br>
+
+![rpls screen animated gif. a triangle rotates on a black screen with dots represending tapeheads running across each edge of the triangle. the rpls main UI components surround the triangle, params: clk, vol1, vol2. blue background with random text around the sides](/lib/doc/img/rpls_cover.gif)
 
 varispeed multitap echo. 3 taps (1 recording, 2 playing) cycle through 3 buffers. alter the rate of each playback tap independently from the record tap to create sliced rhythmic & harmonic counterpoint from the input signal in real-time, free from tape head collisions & audible clicks.
 
