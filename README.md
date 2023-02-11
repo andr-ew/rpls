@@ -21,6 +21,12 @@ in the maiden REPL, type:
 ;install https://github.com/andr-ew/rpls/releases/download/v1.0/complete-source-code.zip
 ```
 
+## patch notes
+
+[watch the video]
+
+[read the complete patch notes](/lib/doc/patch-notes.md)
+
 ## norns UI
 
 ### intro
