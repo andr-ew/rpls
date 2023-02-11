@@ -20,7 +20,7 @@ currently in beta - any & all feedback is highly appreciated! feel free to creat
 ## install
 
 ```
-~
+;install https://github.com/andr-ew/rpls/releases/download/v0.2-beta/complete-source-code.zip
 ```
 
 ## norns UI
@@ -32,7 +32,7 @@ currently in beta - any & all feedback is highly appreciated! feel free to creat
 - **K2:** increment page
 - **K3:** freeze, buffers will loop the current contents. hold to clear.
 
-the rotating triangle in the center of the screen illustrates the tape process powering rpls. each side of the triangle represents a buffer. one of the sides (dimly lit) will always be having audio written to it by the record head. after writing to one side, the rec head cycles to the next one. at the same time, the two playheads are playing back the recorded material from the other two sides of the triangle. 
+the rotating triangle in the center of the screen illustrates the tape process powering rpls. each side of the triangle represents a buffer. one side (dimly lit) is always having audio written to it by the record head. after writing to one side, the rec head cycles to the next one. at the same time, the two playheads are playing back the recorded material from the other two sides of the triangle, cycing behind the rec head.
 
 since the play heads never cross over the record head in the same buffer, they can play back recently recorded material at any speed & pitch without causing clicks.
 
@@ -50,7 +50,7 @@ the **clock mult** param offers different windows into rpls depending on its use
 | ---                               | ---                              |
 | low values, < 1                   | pseudo-granular textures         |
 | mid values, 1 - 2                 | chopped delay                    |
-| whole number values (1.0, 2.0...) | delay synced to the global clock |
+| whole number values (1.0, 2.0...) | syced rhythmic delay             |
 | large values, > 2                 | chopped tape loops               |
 
 ### page `R`
@@ -110,8 +110,8 @@ feedback paths involving the play heads lead to continuously transposed overdubs
 ![page F of rpls, E1-3 are labelled](/lib/doc/img/rpls-05.png)
 
 - **E1:** resonnance of both filters
-- **E3:** cutoff of the highpass filter, effects input only
-- **E3:** cutoff of the lowpass filter, effects output only (both playheads)
+- **E3:** cutoff of the highpass filter, affects input only
+- **E3:** cutoff of the lowpass filter, affects output only (both playheads)
 
 **IMPORTANT:** be careful with high resonnace values - the highpass filter feeds back into the record head, so the input filter can easily self-oscillate & create loud sounds
 
