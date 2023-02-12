@@ -2,7 +2,7 @@
 --
 -- varispeed multitap echo
 --
--- v0.2-beta @andrew
+-- v1.0 @andrew
 --
 -- K2-K3: page
 -- E1-E3: various
