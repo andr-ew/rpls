@@ -4,7 +4,8 @@
 --
 -- v1.0 @andrew
 --
--- K2-K3: page
+-- K2: page
+-- K3: freeze
 -- E1-E3: various
 
 --git submodule libs
