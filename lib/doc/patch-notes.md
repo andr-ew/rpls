@@ -1,6 +1,6 @@
 # patch notes
 
-watch the full video: [link](https://www.youtube.com/watch?v=AUcsdTWoAys)
+watch the video: [link](https://www.youtube.com/watch?v=AUcsdTWoAys)
 
 ## 1. one osc band
 
