@@ -49,7 +49,7 @@ since the play heads never cross over the record head in the same buffer, they c
 ![page C of rpls, E1-3 are labelled](/lib/doc/img/rpls-01.png)
 
 - **E1:** clock multiple / division (**clock mult**). sets the rate at which tape heads cycle between buffers, measured in beats at the global clock tempo.
-- **E3:** volume of playhead 1
+- **E2:** volume of playhead 1
 - **E3:** volume of playhead 2
 
 the **clock mult** param offers different windows into rpls depending on its use:
@@ -66,7 +66,7 @@ the **clock mult** param offers different windows into rpls depending on its use
 ![page R of rpls, E1-3 are labelled](/lib/doc/img/rpls-03.png)
 
 - **E1:** rate of the record head
-- **E3:** rate of play head 1
+- **E2:** rate of play head 1
 - **E3:** rate of pay head 2
 
 rates simultaneously set the _tempo multiple_, _pitch transposition_, & _direction_ of playback for the tape heads' repsective buffer slices. the actual playback rate of a playhead will always depend on the _ratio_ between that play head & the record head.
@@ -104,7 +104,7 @@ note that the range of **rate 1** on the negative side has been reduced to preve
 ![page > of rpls, E1-3 are labelled](/lib/doc/img/rpls-04.png)
 
 - **E1:** feedback, record head back into record head
-- **E3:** feedback, playhead 1 to record head
+- **E2:** feedback, playhead 1 to record head
 - **E3:** feedback, playhead 2 to record head
 
 the **rec > rec** feedback path resembles the decay control of a typical delay. increase to add echo tails or overdubs. there's also a ping-pong effect at play, mirroring the stereo field on each pass.
@@ -118,7 +118,7 @@ feedback paths involving the play heads lead to continuously transposed overdubs
 ![page F of rpls, E1-3 are labelled](/lib/doc/img/rpls-05.png)
 
 - **E1:** resonnance of both filters
-- **E3:** cutoff of the highpass filter, affects input only
+- **E2:** cutoff of the highpass filter, affects input only
 - **E3:** cutoff of the lowpass filter, affects output only (both playheads)
 
 **IMPORTANT:** be careful with high resonnace values - the highpass filter feeds back into the record head, so the input filter can easily self-oscillate & create loud sounds
