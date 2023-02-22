@@ -121,6 +121,25 @@ do
             crops.dirty.screen = true
         end
     }
+    params:add{
+        type = 'binary', behavior = 'momentary', id = 'octave skip',
+        action = function(v)
+            -- warble logic courtesy of cranes
+            local function sl()
+               slew_temp(3, 0.1 + (math.random(-5,5)/100))
+            end
+            if v > 0 then
+                wob = (rate[3] + 1)
+                sl()
+                update_rate()
+            else
+                wob = 0
+                sl()
+                update_rate()
+            end
+            crops.dirty.screen = true
+        end
+    }
 end
 
 params:add_separator('clock')
