@@ -129,7 +129,7 @@ do
                slew_temp(3, 0.1 + (math.random(-5,5)/100))
             end
             if v > 0 then
-                wob = (rate[3] + 1)
+                wob = 1
                 sl()
                 update_rate()
             else
