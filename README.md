@@ -6,6 +6,9 @@ varispeed multitap echo. 3 taps (1 recording, 2 playing) cycle through 3 buffers
 
 a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliterate).
 
+**NOTE:** to view images, please read at [github.com](https://github.com/andr-ew/rpls) not [norns.community](https://norns.community/rpls)
+
+
 ## hardware
 
 **required**
