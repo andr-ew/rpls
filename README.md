@@ -86,7 +86,7 @@ assuming **rate r = 1**, the following rhythmic & harmonic relationships are ava
 | +- 5          | +2 octaves + maj3rd | 5x                      |
 | +- 6          | +2 octaves + 5th    | 6x                      |
 
-with **rate > 1**, many more relationships are available, including common just-intonnation harmonies & polyrhythms:
+with **rate r > 1**, many more relationships are available, including common just-intonnation harmonies & polyrhythms:
 
 | playback rate | record rate | pitch transposition | polyrhythm |
 | ---           | ---         | ---                 | ---        |
