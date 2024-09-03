@@ -24,16 +24,15 @@ local k = {
 }
 
 local function Control()
+    local _ctl = { enc = Enc.control(), screen = Screen.list() }
+
     return function(props)
-        _enc.control{
+        _ctl.enc{
             n = props.n, 
             controlspec = params:lookup_param(props.id).controlspec,
-            state = {
-                params:get(props.id), 
-                params.set, params, props.id,
-            },
+            state = crops.of_param(props.id)
         }
-        _screen.list{
+        _ctl.screen{
             x = e[props.n].x, y = e[props.n].y, margin = 3,
             text = { 
                 [props.label or props.id] = util.round(params:get(props.id), props.round or 0.01) 
@@ -42,28 +41,28 @@ local function Control()
     end
 end
 local function Option()
-    local remainder = 0.0
+    local _opt = { enc = Enc.integer(), screen = Screen.list() }
 
     return function(props)
-        _enc.integer{
+        _opt.enc{
             n = props.n, 
             min = 1, max = #params:lookup_param(props.id).options,
-            state = {
-                params:get(props.id), 
-                params.set, params, props.id,
-            },
-            state_remainder = { remainder, function(v) remainder = v end }
+            state = crops.of_param(props.id)
         }
-        _screen.list{
+        _opt.screen{
             x = e[props.n].x, y = e[props.n].y, margin = 3,
             text = { [props.label or props.id] = params:string(props.id) },
         }
     end
 end
+
 local function ToggleHold()
     local downtime = nil
     local blink = false
     local blink_level = 2
+
+    local _toggle = Key.toggle()
+    local _text = Screen.text()
 
     return function(props)
         if crops.device == 'key' and crops.mode == 'input' then
@@ -94,12 +93,9 @@ local function ToggleHold()
                             crops.dirty.screen = true
                         end)
                     else
-                        _key.toggle{
+                        _toggle{
                             n = props.n, edge = 'falling',
-                            state = {
-                                params:get(props.id_toggle), 
-                                params.set, params, props.id_toggle,
-                            },
+                            state = crops.of_param(props.id_toggle)
                         }
                     end
                     
@@ -108,7 +104,7 @@ local function ToggleHold()
             end
         end
 
-        _screen.text{
+        _text{
             x = k[props.n].x, y = k[props.n].y,
             text = blink and (
                 props.label_hold or props.id_hold
@@ -170,28 +166,24 @@ local function Norns()
         _pages[i] = Pages[name]()
     end
 
+    local _focus = { key = Key.integer(), screen = Screen.list() }
+
     local _freeze_clear = ToggleHold()
 
     local page = 1
-    local alt = 0
 
     local _gfx = Gfx()
 
     return function()
-        _key.momentary{
-            n = 1,
-            state = { alt, function(v) alt = v; crops.dirty.screen = true end },
-        }
-
         local pages = { 'C', 'R', '>', params:string('state') == 'enabled' and 'F' or nil }
 
         _pages[util.wrap(page, 1, #pages)]()
 
-        _key.integer{
+        _focus.key{
             n_next = 2, min = 1, max = #pages,
-            state = { page, function(v) page = v; crops.dirty.screen = true end },
+            state = crops.of_variable(page, function(v) page = v; crops.dirty.screen = true end),
         }
-        _screen.list{
+        _focus.screen{
             x = k[2].x, y = k[2].y, margin = 2,
             text = pages, focus = page,
         }

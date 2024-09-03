@@ -10,10 +10,11 @@
 
 --git submodule libs
 
-include 'lib/crops/core'                      --crops, a UI component framework
-_enc = include 'lib/crops/routines/enc'
-_key = include 'lib/crops/routines/key'
-_screen = include 'lib/crops/routines/screen'
+include 'lib/crops/core'                                    --crops, a UI component framework
+Grid = include 'lib/crops/components/grid'
+Enc = include 'lib/crops/components/enc'
+Key = include 'lib/crops/components/key'
+Screen = include 'lib/crops/components/screen'
 
 --script globals
 
