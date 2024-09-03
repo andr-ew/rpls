@@ -16,7 +16,14 @@ Enc = include 'lib/crops/components/enc'
 Key = include 'lib/crops/components/key'
 Screen = include 'lib/crops/components/screen'
 
+patcher = include 'lib/patcher/patcher'                     --modulation maxtrix
+Patcher = include 'lib/patcher/ui/using_map_key'            --mod matrix patching UI utilities
+
 --script globals
+
+rpls = {}
+
+rpls.mapping = false
 
 rates = {
     [1] = {

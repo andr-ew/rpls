@@ -76,7 +76,7 @@ do
             stereo('rate', i, rate[i] + wob)
         end
     end
-    params:add{
+    patcher.add_destination_and_param{
         type='option', id = 'rate rec',
         options = rates.rec.k, default = tab.key(rates.rec.k, '1'),
         action = function(i)
@@ -85,7 +85,7 @@ do
         end
     }
     for idx = 1,2 do
-        params:add{
+        patcher.add_destination_and_param{
             type = 'option', id = 'rate '..idx,
             options = rates[idx].k, default = tab.key(rates[idx].k, '1'),
             action = function(i)
@@ -94,7 +94,7 @@ do
             end
         }
     end
-    params:add{
+    patcher.add_destination_and_param{
         type = 'control', id = 'slew',
         controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
         action = function(v)
@@ -102,7 +102,7 @@ do
             crops.dirty.screen = true
         end
     }
-    params:add{
+    patcher.add_destination_and_param{
         type = 'binary', behavior = 'momentary', id = '~',
         action = function(v)
             -- warble logic courtesy of cranes
@@ -122,6 +122,8 @@ do
         end
     }
 end
+    
+local freeze = 0
 
 params:add_separator('clock')
 do
@@ -146,7 +148,7 @@ do
     end
     clock.tempo_change_handler(clock.get_tempo())
     
-    params:add{
+    patcher.add_destination_and_param{
         type = 'control', id = 'clock mult',
         controlspec = cs.def { 
             min = 0, max = 8, default = 2, quantum = 1/4/32,
@@ -203,7 +205,7 @@ do
             end
             tick_all = tick_all + quant
 
-            if params:get('freeze') == 0 then
+            if freeze == 0 then
                 tick_tri = (tick_tri + (quant / (math.max(beats, quant*1.2) * 3)))
             end
 
@@ -211,7 +213,7 @@ do
         end
     end)
 
-    params:add{
+    patcher.add_destination_and_param{
         type='control', id='fade',
         controlspec = cs.def { default = 0.07, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
         action = function(v)
@@ -229,7 +231,7 @@ do
             crops.dirty.screen = true
         end
     }
-    params:add{
+    patcher.add_destination_and_param{
         type = 'binary', behavior = 'trigger', id = 'reset',
         action = function()
             resall()
@@ -264,7 +266,7 @@ for _,idx in pairs{ 3, 1, 2 } do
     local off = (idx - 1) * 2
     local name = idx==3 and 'rec' or idx
 
-    params:add{
+    patcher.add_destination_and_param{
         type = 'control', id = name..' > rec', controlspec = cs.def{ default = 0 },
         action = function(v)
             feedback[idx] = v; update_feedback(idx)
@@ -273,16 +275,18 @@ for _,idx in pairs{ 3, 1, 2 } do
         end
     }
 end
-params:add{
+patcher.add_destination_and_param{
     type = 'binary', behavior = 'toggle', id = 'freeze',
     action = function(froze)
+        freeze = froze
+
         stereo('pre_level', 3, froze)
         stereo('rec_level', 3, ~ froze & 1)
 
         crops.dirty.screen = true
     end
 }
-params:add{
+patcher.add_destination_and_param{
     type = 'binary', behavior = 'trigger', id = 'clear',
     action = function()
         softcut.buffer_clear()
@@ -369,7 +373,7 @@ do
         local off = (idx - 1) * 2
         local name = idx==3 and 'rec' or idx
 
-        params:add{
+        patcher.add_destination_and_param{
             type='control', id = 'vol '..name,
             controlspec = cs.def { default = 1 },
             action = function(v) 
@@ -443,7 +447,7 @@ do
     for i,filter in ipairs(both) do
         local pre = filter==pre
 
-        params:add {
+        patcher.add_destination_and_param {
             type = 'control', id = filter,
             controlspec = cs.def{ default = defaults[filter], quantum = 1/100/2, step = 0 },
             action = (
@@ -463,7 +467,7 @@ do
             )
         }
     end
-    params:add {
+    patcher.add_destination_and_param {
         type = 'control', id = 'q',
         controlspec = cs.def{ default = 0.4 },
         action = function(v)
@@ -487,6 +491,15 @@ local function defaults()
     params:set('lp', 0.8)
 end
 defaults()
+    
+--add patcher params
+do
+    params:add_separator('patcher')
+    params:add_group('assignments', #patcher.destinations)
+    patcher.add_assignment_params(function() 
+        crops.dirty.screen = true
+    end)
+end
     
 --add pset params
 do

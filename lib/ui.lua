@@ -24,35 +24,73 @@ local k = {
 }
 
 local function Control()
-    local _ctl = { enc = Enc.control(), screen = Screen.list() }
+    local _ctl = { 
+        enc = Patcher.enc.destination(Enc.control()), 
+        screen = Patcher.screen.destination(Screen.list())
+    }
 
     return function(props)
-        _ctl.enc{
+        local spec = params:lookup_param(props.id).controlspec
+
+        _ctl.enc(props.id, rpls.mapping, {
             n = props.n, 
-            controlspec = params:lookup_param(props.id).controlspec,
+            controlspec = spec,
             state = crops.of_param(props.id)
-        }
-        _ctl.screen{
+        })
+
+        local src = patcher.get_assignment_of_destination(props.id) 
+        local assigned = src and (src ~= 'none')
+
+        _ctl.screen(props.id, rpls.mapping, {
+            -- x = e[props.n].x, y = e[props.n].y, margin = 3,
+            -- text = { 
+            --     [props.label or props.id] = util.round(params:get(props.id), props.round or 0.01) 
+            -- },
             x = e[props.n].x, y = e[props.n].y, margin = 3,
-            text = { 
-                [props.label or props.id] = util.round(params:get(props.id), props.round or 0.01) 
+            text = {
+                props.label or props.id, 
+                string.format(
+                    props.format or '%.2f', params:get(props.id)
+                )
+                ..' '..(spec.units or ''),
+                assigned and '+' or nil,
+                assigned and string.format(
+                    '%.3f', patcher.get_source_value_by_destination(props.id)
+                ) or nil
             },
-        }
+            levels = { 4, 15 },
+        }, props.label)
     end
 end
 local function Option()
-    local _opt = { enc = Enc.integer(), screen = Screen.list() }
+    local _opt = { 
+        enc = Patcher.enc.destination(Enc.integer()), 
+        screen = Patcher.screen.destination(Screen.list()) 
+    }
 
     return function(props)
-        _opt.enc{
+        _opt.enc(props.id, rpls.mapping, {
             n = props.n, 
             min = 1, max = #params:lookup_param(props.id).options,
             state = crops.of_param(props.id)
-        }
-        _opt.screen{
+        })
+
+        local src = patcher.get_assignment_of_destination(props.id) 
+        local assigned = src and (src ~= 'none')
+
+        _opt.screen(props.id, rpls.mapping, {
             x = e[props.n].x, y = e[props.n].y, margin = 3,
-            text = { [props.label or props.id] = params:string(props.id) },
-        }
+            -- text = { [props.label or props.id] = params:string(props.id) },
+            text = {
+                props.label or props.id, 
+                params:string(props.id),
+                assigned and '+' or nil,
+                assigned and string.format(
+                    '%.3f', patcher.get_source_value_by_destination(props.id)
+                ) or nil
+            },
+            levels = { 4, 15 },
+        }, props.label)
     end
 end
 
@@ -159,6 +197,8 @@ Pages['F'] = function()
 end
 
 local function Norns()
+    local _map = Key.momentary()
+
     local pages_all = { 'C', 'R', '>', 'F' }
     local _pages = {}
 
@@ -175,6 +215,13 @@ local function Norns()
     local _gfx = Gfx()
 
     return function()
+        _map{
+            n = 1, state = crops.of_variable(rpls.mapping, function(v) 
+                rpls.mapping = v>0
+                crops.dirty.screen = true
+            end)
+        }
+
         local pages = { 'C', 'R', '>', params:string('state') == 'enabled' and 'F' or nil }
 
         _pages[util.wrap(page, 1, #pages)]()
