@@ -1,3 +1,6 @@
 [submodule "lib/crops"]
 	path = lib/crops
 	url = https://github.com/andr-ew/crops
+[submodule "lib/patcher"]
+	path = lib/patcher
+	url = https://github.com/andr-ew/patcher

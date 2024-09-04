@@ -10,12 +10,20 @@
 
 --git submodule libs
 
-include 'lib/crops/core'                      --crops, a UI component framework
-_enc = include 'lib/crops/routines/enc'
-_key = include 'lib/crops/routines/key'
-_screen = include 'lib/crops/routines/screen'
+include 'lib/crops/core'                                    --crops, a UI component framework
+Grid = include 'lib/crops/components/grid'
+Enc = include 'lib/crops/components/enc'
+Key = include 'lib/crops/components/key'
+Screen = include 'lib/crops/components/screen'
+
+patcher = include 'lib/patcher/patcher'                     --modulation maxtrix
+Patcher = include 'lib/patcher/ui/using_map_key'            --mod matrix patching UI utilities
 
 --script globals
+
+rpls = {}
+
+rpls.mapping = false
 
 rates = {
     [1] = {
@@ -31,12 +39,8 @@ rates = {
         v = { 0, 1, 2, 3, 4 }
     }
 }
-function get_rate(idx)
-    local k = (idx==3) and 'rec' or idx
-    return rates[k].v[params:get('rate '..k)]
-end
-
 heads = { 1, 2, 3 }
+get_rate = function() return 1 end
 
 loop_points = {}
 for i = 1,3 do loop_points[i] = { 0, 0 } end
@@ -44,6 +48,24 @@ for i = 1,3 do loop_points[i] = { 0, 0 } end
 tick = { 100, 100, 100 }
 tick_all = 100
 tick_tri = 0
+
+--set up modulation sources
+
+local add_actions = {}
+for i = 1,2 do
+    add_actions[i] = patcher.crow.add_source(i)
+end
+
+--set up crow
+
+local function crow_add()
+    for _,action in ipairs(add_actions) do action() end
+
+    for n = 1,3 do
+        crow.output[n].action = 'pulse()'
+    end
+end
+norns.crow.add = crow_add
 
 --include script libs
 
@@ -65,7 +87,8 @@ crops.connect_screen(_app.norns, 60)
 function init()
     params:read()
     params:bang()
-
+    
+    crow_add()
     post_init()
 end
 

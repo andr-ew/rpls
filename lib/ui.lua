@@ -6,7 +6,7 @@ local h = 64 - mar.top - mar.bottom
 
 x[1] = mar.left
 x[1.5] = 128 * 2/5
-x[2] = 128 * 2/3
+x[2] = 128 * 2/3 - 1
 y[1] = mar.top
 y[3] = 64 - mar.bottom - 10
 y[4] = 64 - mar.bottom
@@ -24,46 +24,70 @@ local k = {
 }
 
 local function Control()
+    local _ctl = { 
+        enc = Patcher.enc.destination(Enc.control()), 
+        screen = Patcher.screen.destination(Screen.list())
+    }
+
     return function(props)
-        _enc.control{
+        local spec = params:lookup_param(props.id).controlspec
+
+        _ctl.enc(props.id, rpls.mapping, {
             n = props.n, 
-            controlspec = params:lookup_param(props.id).controlspec,
-            state = {
-                params:get(props.id), 
-                params.set, params, props.id,
-            },
-        }
-        _screen.list{
+            controlspec = spec,
+            state = crops.of_param(props.id)
+        })
+
+        _ctl.screen(props.id, rpls.mapping, {
+            -- x = e[props.n].x, y = e[props.n].y, margin = 3,
+            -- text = { 
+            --     [props.label or props.id] = util.round(params:get(props.id), props.round or 0.01) 
+            -- },
             x = e[props.n].x, y = e[props.n].y, margin = 3,
-            text = { 
-                [props.label or props.id] = util.round(params:get(props.id), props.round or 0.01) 
+            text = {
+                props.label or props.id, 
+                string.format(
+                    props.format or '%.2f', patcher.get_value_by_destination(props.id)
+                )
+                ..(spec.units or ''),
             },
-        }
+            levels = { 4, 15 },
+        }, props.label)
     end
 end
 local function Option()
-    local remainder = 0.0
+    local _opt = { 
+        enc = Patcher.enc.destination(Enc.integer()), 
+        screen = Patcher.screen.destination(Screen.list()) 
+    }
 
     return function(props)
-        _enc.integer{
+        local options = params:lookup_param(props.id).options
+
+        _opt.enc(props.id, rpls.mapping, {
             n = props.n, 
             min = 1, max = #params:lookup_param(props.id).options,
-            state = {
-                params:get(props.id), 
-                params.set, params, props.id,
-            },
-            state_remainder = { remainder, function(v) remainder = v end }
-        }
-        _screen.list{
+            state = crops.of_param(props.id)
+        })
+        _opt.screen(props.id, rpls.mapping, {
             x = e[props.n].x, y = e[props.n].y, margin = 3,
-            text = { [props.label or props.id] = params:string(props.id) },
-        }
+            -- text = { [props.label or props.id] = params:string(props.id) },
+            text = {
+                props.label or props.id, 
+                options[patcher.get_value_by_destination(props.id)]
+            },
+            levels = { 4, 15 },
+        }, props.label)
     end
 end
+
 local function ToggleHold()
     local downtime = nil
     local blink = false
     local blink_level = 2
+
+    local _toggle = Key.toggle()
+    local _text = Screen.text()
 
     return function(props)
         if crops.device == 'key' and crops.mode == 'input' then
@@ -94,12 +118,9 @@ local function ToggleHold()
                             crops.dirty.screen = true
                         end)
                     else
-                        _key.toggle{
+                        _toggle{
                             n = props.n, edge = 'falling',
-                            state = {
-                                params:get(props.id_toggle), 
-                                params.set, params, props.id_toggle,
-                            },
+                            state = crops.of_param(props.id_toggle)
                         }
                     end
                     
@@ -108,7 +129,7 @@ local function ToggleHold()
             end
         end
 
-        _screen.text{
+        _text{
             x = k[props.n].x, y = k[props.n].y,
             text = blink and (
                 props.label_hold or props.id_hold
@@ -163,6 +184,8 @@ Pages['F'] = function()
 end
 
 local function Norns()
+    local _map = Key.momentary()
+
     local pages_all = { 'C', 'R', '>', 'F' }
     local _pages = {}
 
@@ -170,28 +193,31 @@ local function Norns()
         _pages[i] = Pages[name]()
     end
 
+    local _focus = { key = Key.integer(), screen = Screen.list() }
+
     local _freeze_clear = ToggleHold()
 
     local page = 1
-    local alt = 0
 
     local _gfx = Gfx()
 
     return function()
-        _key.momentary{
-            n = 1,
-            state = { alt, function(v) alt = v; crops.dirty.screen = true end },
+        _map{
+            n = 1, state = crops.of_variable(rpls.mapping, function(v) 
+                rpls.mapping = v>0
+                crops.dirty.screen = true
+            end)
         }
 
         local pages = { 'C', 'R', '>', params:string('state') == 'enabled' and 'F' or nil }
 
         _pages[util.wrap(page, 1, #pages)]()
 
-        _key.integer{
+        _focus.key{
             n_next = 2, min = 1, max = #pages,
-            state = { page, function(v) page = v; crops.dirty.screen = true end },
+            state = crops.of_variable(page, function(v) page = v; crops.dirty.screen = true end),
         }
-        _screen.list{
+        _focus.screen{
             x = k[2].x, y = k[2].y, margin = 2,
             text = pages, focus = page,
         }
