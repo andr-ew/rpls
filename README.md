@@ -16,6 +16,10 @@ a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliter
 - [norns](https://github.com/p3r7/awesome-monome-norns) (210927 or later)
 - audio input
 
+**also supported**
+
+- [crow](https://monome.org/docs/crow/)
+
 ## install
 
 install from the maiden catalog
@@ -125,6 +129,12 @@ feedback paths involving the play heads lead to continuously transposed overdubs
 - **E3:** cutoff of the lowpass filter, affects output only (both playheads)
 
 **IMPORTANT:** be careful with high resonnace values - the highpass filter feeds back into the record head, so the input filter can easily self-oscillate & create loud sounds
+
+## crow
+
+any editable control on the norns screen can be mapped to either input of crow. hold K1 and use the encoder associated with the param to assign.
+
+crow outputs 1-3 output triggers at the rate specified by the record head, and playheads 1 & 2, respectively
 
 ## additional params
 
