@@ -181,6 +181,7 @@ do
         local rev = rate < 0
 
         stereo('position', i, rev and en or st)
+        crow.output[i%3 + 1]()
 
         tick[i] = 0
     end

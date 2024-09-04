@@ -60,6 +60,10 @@ end
 
 local function crow_add()
     for _,action in ipairs(add_actions) do action() end
+
+    for n = 1,3 do
+        crow.output[n].action = 'pulse()'
+    end
 end
 norns.crow.add = crow_add
 
