@@ -69,8 +69,17 @@ do
         end)
     end
 
+
     local rate = { 1, 1, 1 }
     local wob = 0
+    
+    --TODO: just put the rates table in a dang global
+    get_rate = function(idx)
+        -- local k = (idx==3) and 'rec' or idx
+        -- return rates[k].v[rate[idx]]
+        return rate[idx]
+    end
+
     local function update_rate()
         for i = 1,3 do
             stereo('rate', i, rate[i] + wob)

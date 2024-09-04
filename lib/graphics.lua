@@ -111,17 +111,17 @@ local function Gfx()
             _edge{ 
                 points = pts, n = head, 
                 level = util.round(vc==3 and (
-                    1 + params:get('vol rec') * 4
+                    1 + patcher.get_value_by_destination('vol rec') * 4
                 ) or (
-                    3 + params:get('vol '..vc) * 2
+                    3 + patcher.get_value_by_destination('vol '..vc) * 2
                 ))
             }
         end
 
         for vc = 1,3 do
-            if params:get('freeze') == 0 or vc ~= 3 then
+            if patcher.get_value_by_destination('freeze') == 0 or vc ~= 3 then
                 local head = 3 - heads[vc] + 1
-                local beats = params:get('clock mult')
+                local beats = patcher.get_value_by_destination('clock mult')
                 local ph = math.min(tick[vc] / beats, 1)
                 local pos = get_rate(vc) > 0 and ph or 1-ph
             
@@ -130,7 +130,7 @@ local function Gfx()
         end
 
         for i = 1,2 do 
-            local fb = params:get(i..' > rec')
+            local fb = patcher.get_value_by_destination(i..' > rec')
             local ratio = get_rate(i) / get_rate(3)
 
             if fb > 0 and math.abs(ratio) ~= 1 then

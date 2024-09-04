@@ -38,9 +38,6 @@ local function Control()
             state = crops.of_param(props.id)
         })
 
-        local src = patcher.get_assignment_of_destination(props.id) 
-        local assigned = src and (src ~= 'none')
-
         _ctl.screen(props.id, rpls.mapping, {
             -- x = e[props.n].x, y = e[props.n].y, margin = 3,
             -- text = { 
@@ -50,13 +47,9 @@ local function Control()
             text = {
                 props.label or props.id, 
                 string.format(
-                    props.format or '%.2f', params:get(props.id)
+                    props.format or '%.2f', patcher.get_value_by_destination(props.id)
                 )
                 ..' '..(spec.units or ''),
-                assigned and '+' or nil,
-                assigned and string.format(
-                    '%.3f', patcher.get_source_value_by_destination(props.id)
-                ) or nil
             },
             levels = { 4, 15 },
         }, props.label)
@@ -69,25 +62,19 @@ local function Option()
     }
 
     return function(props)
+        local options = params:lookup_param(props.id).options
+
         _opt.enc(props.id, rpls.mapping, {
             n = props.n, 
             min = 1, max = #params:lookup_param(props.id).options,
             state = crops.of_param(props.id)
         })
-
-        local src = patcher.get_assignment_of_destination(props.id) 
-        local assigned = src and (src ~= 'none')
-
         _opt.screen(props.id, rpls.mapping, {
             x = e[props.n].x, y = e[props.n].y, margin = 3,
             -- text = { [props.label or props.id] = params:string(props.id) },
             text = {
                 props.label or props.id, 
-                params:string(props.id),
-                assigned and '+' or nil,
-                assigned and string.format(
-                    '%.3f', patcher.get_source_value_by_destination(props.id)
-                ) or nil
+                options[patcher.get_value_by_destination(props.id)]
             },
             levels = { 4, 15 },
         }, props.label)
