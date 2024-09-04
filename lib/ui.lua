@@ -6,7 +6,7 @@ local h = 64 - mar.top - mar.bottom
 
 x[1] = mar.left
 x[1.5] = 128 * 2/5
-x[2] = 128 * 2/3
+x[2] = 128 * 2/3 - 1
 y[1] = mar.top
 y[3] = 64 - mar.bottom - 10
 y[4] = 64 - mar.bottom
@@ -49,7 +49,7 @@ local function Control()
                 string.format(
                     props.format or '%.2f', patcher.get_value_by_destination(props.id)
                 )
-                ..' '..(spec.units or ''),
+                ..(spec.units or ''),
             },
             levels = { 4, 15 },
         }, props.label)

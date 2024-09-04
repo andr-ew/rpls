@@ -111,9 +111,9 @@ local function Gfx()
             _edge{ 
                 points = pts, n = head, 
                 level = util.round(vc==3 and (
-                    1 + patcher.get_value_by_destination('vol rec') * 4
+                    1 + rpls.levels[3] * 4
                 ) or (
-                    3 + patcher.get_value_by_destination('vol '..vc) * 2
+                    3 + rpls.levels[vc] * 2
                 ))
             }
         end
@@ -130,13 +130,14 @@ local function Gfx()
         end
 
         for i = 1,2 do 
-            local fb = patcher.get_value_by_destination(i..' > rec')
+            -- local fb = patcher.get_value_by_destination(i..' > rec')
+            fb = rpls.feedback[i]
             local ratio = get_rate(i) / get_rate(3)
 
             if fb > 0 and math.abs(ratio) ~= 1 then
                 _recur_poly{
                     faces = 3, x = 128/2, y = 64/2, r = 32, 
-                    ratio = ratio, feedback = math.log(1 + fb, 2)
+                    ratio = ratio, feedback = math.log(1 + (fb*2), 2)
                 }
             end
         end

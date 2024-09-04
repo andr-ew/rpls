@@ -69,7 +69,6 @@ do
         end)
     end
 
-
     local rate = { 1, 1, 1 }
     local wob = 0
     
@@ -105,7 +104,7 @@ do
     end
     patcher.add_destination_and_param{
         type = 'control', id = 'slew',
-        controlspec = cs.def{ min = 0, max = 0.5, default = 0.01 },
+        controlspec = cs.def{ min = 0, max = 0.5, default = 0.01, units = 's' },
         action = function(v)
             slew = v; update_slew()
             crops.dirty.screen = true
@@ -160,7 +159,7 @@ do
     patcher.add_destination_and_param{
         type = 'control', id = 'clock mult',
         controlspec = cs.def { 
-            min = 0, max = 8, default = 2, quantum = 1/4/32,
+            min = 0, max = 8, default = 2, quantum = 1/4/32, units = 'v',
         },
         action = function(v)
             beats = math.max(v, quant)
@@ -224,7 +223,7 @@ do
 
     patcher.add_destination_and_param{
         type='control', id='fade',
-        controlspec = cs.def { default = 0.07, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5 },
+        controlspec = cs.def { default = 0.07, min = 0.0025, quantum = 1/100/10, step = 0, max = 0.5, units = 's' },
         action = function(v)
             for i = 1,4 do
                 softcut.fade_time(i, v)
@@ -253,6 +252,8 @@ end
 local output_route = 'stereo'
 local feedback = { 0, 0, 0 }
 
+rpls.feedback = feedback
+
 local function update_feedback(idx)
     local off = (idx - 1) * 2
     local v = feedback[idx]
@@ -270,15 +271,31 @@ local function update_feedback(idx)
     end
 end
 
+local function ampdb(amp) return math.log(amp, 10) * 20.0 end
+local function dbamp(db) return 10.0^(db*0.05) end
+
+local function volt_amp(volt, db0val)
+    local minval = -math.huge
+    local maxval = 0
+    local range = dbamp(maxval) - dbamp(minval)
+
+    local scaled = volt/db0val
+    local db = ampdb(scaled * scaled * range + dbamp(minval))
+    local amp = dbamp(db)
+
+    return amp
+end
+
 params:add_separator('feedback')
 for _,idx in pairs{ 3, 1, 2 } do
     local off = (idx - 1) * 2
     local name = idx==3 and 'rec' or idx
 
     patcher.add_destination_and_param{
-        type = 'control', id = name..' > rec', controlspec = cs.def{ default = 0 },
+        type = 'control', id = name..' > rec',
+        controlspec = cs.def{ min = 0, max = 5, default = 0, units = 'v' },
         action = function(v)
-            feedback[idx] = v; update_feedback(idx)
+            feedback[idx] = volt_amp(v, 5); update_feedback(idx)
             
             crops.dirty.screen = true
         end
@@ -347,6 +364,8 @@ end
 
 local levels = { 1, 1, 1 }
 
+rpls.levels = levels
+
 local update_level = function(idx)
     local off = (idx - 1) * 2
     local p, v = 0, levels[idx]
@@ -384,9 +403,9 @@ do
 
         patcher.add_destination_and_param{
             type='control', id = 'vol '..name,
-            controlspec = cs.def { default = 1 },
+            controlspec = cs.def{ min = 0, max = 5, default = 4, units = 'v' },
             action = function(v) 
-                levels[idx] = v; update_level(idx)
+                levels[idx] = volt_amp(v, 4); update_level(idx)
 
                 crops.dirty.screen = true
             end
@@ -458,17 +477,20 @@ do
 
         patcher.add_destination_and_param {
             type = 'control', id = filter,
-            controlspec = cs.def{ default = defaults[filter], quantum = 1/100/2, step = 0 },
+            controlspec = cs.def{ 
+                default = defaults[filter] * 7, quantum = 1/100/2, step = 0, units = 'v',
+                min = 0, max = 7,
+            },
             action = (
                 pre and (
                     function(v) 
-                        stereo('pre_filter_fc', 3, util.linexp(0, 1, 2, 20000, v)) 
+                        stereo('pre_filter_fc', 3, util.linexp(0, 1, 2, 20000, v/7)) 
                         crops.dirty.screen = true
                     end
                 ) or (
                     function(v) 
                         for i = 1,2 do
-                            stereo('post_filter_fc', i, util.linexp(0, 1, 2, 20000, v)) 
+                            stereo('post_filter_fc', i, util.linexp(0, 1, 2, 20000, v/7)) 
                             crops.dirty.screen = true
                         end
                     end
@@ -478,12 +500,12 @@ do
     end
     patcher.add_destination_and_param {
         type = 'control', id = 'q',
-        controlspec = cs.def{ default = 0.4 },
+        controlspec = cs.def{ default = 0.4 * 5, min = 0, max = 5 },
         action = function(v)
             for i = 1,2 do
-                stereo('post_filter_rq', i, util.linexp(0, 1, 0.01, 20, 1 - v))
+                stereo('post_filter_rq', i, util.linexp(0, 1, 0.01, 20, 1 - v/5))
             end
-            stereo('pre_filter_rq', 3, util.linexp(0, 1, 0.01, 20, 1 - v))
+            stereo('pre_filter_rq', 3, util.linexp(0, 1, 0.01, 20, 1 - v/5))
             
             crops.dirty.screen = true
         end
@@ -493,11 +515,11 @@ end
 local function defaults()
     params:set('rate 1', tab.key(rates[1].k, '2'))
     params:set('rate 2', tab.key(rates[2].k, '-1/2'))
-    params:set('vol 1', 0.5)
-    params:set('vol rec', 0)
-    params:set('rec > rec', 0.5)
-    params:set('hp', 0.25)
-    params:set('lp', 0.8)
+    params:set('vol 1', 0.5 * 5)
+    params:set('vol rec', 0 * 5)
+    params:set('rec > rec', 0.5 * 5)
+    params:set('hp', 0.25 * 7)
+    params:set('lp', 0.8 * 7)
 end
 defaults()
     
