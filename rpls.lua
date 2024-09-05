@@ -21,6 +21,8 @@ Grid = include 'lib/crops/components/grid'
 Enc = include 'lib/crops/components/enc'
 Key = include 'lib/crops/components/key'
 Screen = include 'lib/crops/components/screen'
+Produce = {}                                                --additional components for crops
+Produce.grid = include 'lib/produce/grid'
 
 patcher = include 'lib/patcher/patcher'                     --modulation maxtrix
 Patcher = include 'lib/patcher/ui/using_map_key'            --mod matrix patching UI utilities
@@ -34,7 +36,9 @@ App = {}
 App.norns = include 'lib/ui/norns'                          --norns UI component
 App.grid = include 'lib/ui/grid'                            --grid UI
 
+script_focus = 'rpls'
 rpls.crow_outputs_enabled = true
+rpls.grid_graphics = true
 
 --set up modulation sources
 

@@ -79,10 +79,13 @@ function p.add_softcut_params()
             if clk then clock.cancel(clk) end
             clk = clock.run(function() 
                 stereo('rate_slew_time', idx, v)
+
                 clock.sleep(wait)
                 update_slew()
             end)
         end
+
+        rpls.slew_temp = slew_temp
 
         local rate = { 1, 1, 1 }
         local wob = 0
@@ -105,6 +108,7 @@ function p.add_softcut_params()
             action = function(i)
                 rate[3] = rpls.rates.rec.v[i]; update_rate()
                 crops.dirty.screen = true
+                crops.dirty.grid = true
             end
         }
         for idx = 1,2 do
@@ -114,6 +118,7 @@ function p.add_softcut_params()
                 action = function(i)
                     rate[idx] = rpls.rates[idx].v[i]; update_rate()
                     crops.dirty.screen = true
+                    crops.dirty.grid = true
                 end
             }
         end
@@ -234,6 +239,7 @@ function p.add_softcut_params()
                 end
 
                 crops.dirty.screen = true
+                if rpls.grid_graphics then crops.dirty.grid = true end
             end
         end)
 
