@@ -2,7 +2,7 @@
 --
 -- varispeed multitap echo
 --
--- v1.1 @andrew
+-- v1.1.1 @andrew
 --
 -- K2: page
 -- K3: freeze
@@ -19,35 +19,15 @@ Screen = include 'lib/crops/components/screen'
 patcher = include 'lib/patcher/patcher'                     --modulation maxtrix
 Patcher = include 'lib/patcher/ui/using_map_key'            --mod matrix patching UI utilities
 
---script globals
+--script files
 
-rpls = {}
+rpls = include 'lib/globals'
+Gfx = include 'lib/graphics'                  --screen graphics component
+rpls.params = include 'lib/params'            --params & softcut functionality
+App = {}
+App.norns = include 'lib/ui'                  --norns UI component
 
-rpls.mapping = false
-
-rates = {
-    [1] = {
-        k = { '-1/2', '1/2', '1', '2', '3', '4', '5', '6' },
-        v = { -0.5, 0.5, 1, 2, 3, 4, 5, 6 }
-    },
-    [2] = {
-        k = { '-6', '-5', '-4', '-3', '-2', '-1', '-1/2', '1/2', '1', '2', '3', '4', '5', '6' },
-        v = { -6, -5, -4, -3, -2, -1, -0.5, 0.5, 1, 2, 3, 4, 5, 6 }
-    },
-    rec = {
-        k = { '0', '1', '2', '3', '4' },
-        v = { 0, 1, 2, 3, 4 }
-    }
-}
-heads = { 1, 2, 3 }
-get_rate = function() return 1 end
-
-loop_points = {}
-for i = 1,3 do loop_points[i] = { 0, 0 } end
-
-tick = { 100, 100, 100 }
-tick_all = 100
-tick_tri = 0
+rpls.crow_outputs_enabled = true
 
 --set up modulation sources
 
@@ -67,12 +47,12 @@ local function crow_add()
 end
 norns.crow.add = crow_add
 
---include script libs
-
-Gfx = include 'lib/graphics'                  --screen graphics component
-local post_init = include 'lib/params'        --add params & softcut functionality
-App = {}
-App.norns = include 'lib/ui'                  --norns UI component
+--add params
+    
+rpls.params.pre_init()
+rpls.params.add_softcut_params()
+rpls.params.add_patcher_params()
+rpls.params.add_pset_params()
 
 --connect UI components
 
@@ -89,7 +69,7 @@ function init()
     params:bang()
     
     crow_add()
-    post_init()
+    rpls.params.post_init()
 end
 
 function cleanup()
