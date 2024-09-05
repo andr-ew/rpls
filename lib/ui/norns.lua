@@ -186,18 +186,15 @@ end
 local function Norns()
     local _map = Key.momentary()
 
-    local pages_all = { 'C', 'R', '>', 'F' }
     local _pages = {}
 
-    for i, name in ipairs(pages_all) do
+    for i, name in ipairs(rpls.pages_all) do
         _pages[i] = Pages[name]()
     end
 
     local _focus = { key = Key.integer(), screen = Screen.list() }
 
     local _freeze_clear = ToggleHold()
-
-    local page = 1
 
     local _gfx = Gfx()
 
@@ -209,17 +206,19 @@ local function Norns()
             end)
         }
 
-        local pages = { 'C', 'R', '>', params:string('state') == 'enabled' and 'F' or nil }
-
-        _pages[util.wrap(page, 1, #pages)]()
+        _pages[util.wrap(rpls.page_focus, 1, #rpls.pages)]()
 
         _focus.key{
-            n_next = 2, min = 1, max = #pages,
-            state = crops.of_variable(page, function(v) page = v; crops.dirty.screen = true end),
+            n_next = 2, min = 1, max = #rpls.pages,
+            state = crops.of_variable(rpls.page_focus, function(v) 
+                rpls.page_focus = v
+                crops.dirty.screen = true 
+                crops.dirty.grid = true 
+            end),
         }
         _focus.screen{
             x = k[2].x, y = k[2].y, margin = 2,
-            text = pages, focus = page,
+            text = rpls.pages, focus = rpls.page_focus,
         }
 
         _freeze_clear{

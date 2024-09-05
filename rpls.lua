@@ -8,6 +8,12 @@
 -- K3: freeze
 -- E1-E3: various
 
+--device globals
+
+g = grid.connect()
+
+local wide = g and g.device and g.device.cols >= 16 or false
+
 --git submodule libs
 
 include 'lib/crops/core'                                    --crops, a UI component framework
@@ -22,10 +28,11 @@ Patcher = include 'lib/patcher/ui/using_map_key'            --mod matrix patchin
 --script files
 
 rpls = include 'lib/globals'
-Gfx = include 'lib/graphics'                  --screen graphics component
-rpls.params = include 'lib/params'            --params & softcut functionality
+Gfx = include 'lib/ui/graphics'                             --screen graphics component
+rpls.params = include 'lib/params'                          --params & softcut functionality
 App = {}
-App.norns = include 'lib/ui'                  --norns UI component
+App.norns = include 'lib/ui/norns'                          --norns UI component
+App.grid = include 'lib/ui/grid'                            --grid UI
 
 rpls.crow_outputs_enabled = true
 
@@ -56,11 +63,15 @@ rpls.params.add_pset_params()
 
 --connect UI components
 
-_app = { norns = App.norns() }
+_app = { 
+    grid = App.grid({ wide = wide, y = 1 }), 
+    norns = App.norns() 
+}
 
 crops.connect_enc(_app.norns)
 crops.connect_key(_app.norns)
 crops.connect_screen(_app.norns, 60)
+crops.connect_grid(_app.grid, g)
 
 --norns globals
 

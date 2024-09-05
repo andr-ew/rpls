@@ -326,6 +326,7 @@ function p.add_softcut_params()
             stereo('rec_level', 3, ~ froze & 1)
 
             crops.dirty.screen = true
+            crops.dirty.grid = true
         end
     }
     patcher.add_destination_and_param{
@@ -335,6 +336,7 @@ function p.add_softcut_params()
             params:set('freeze', 0)
 
             crops.dirty.screen = true
+            crops.dirty.grid = true
         end
     }
 
@@ -483,8 +485,14 @@ function p.add_softcut_params()
 
                     params[action](params, 'lp')
                     _menu.rebuild_params() --questionable?
-                end
 
+                    rpls.pages = {
+                        'C', 'R', '>', params:string('state') == 'enabled' and 'F' or nil 
+                    }
+
+                    crops.dirty.screen = true
+                    crops.dirty.grid = true
+                end
             }
         end
 

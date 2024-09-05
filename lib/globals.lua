@@ -26,4 +26,11 @@ rpls.tick = { 100, 100, 100 }
 rpls.tick_all = 100
 rpls.tick_tri = 0
 
+rpls.page_focus = 1
+    
+rpls.pages_all = { 'C', 'R', '>', 'F' }
+
+rpls.pages = { 'C', 'R', '>', 'F' }
+
+
 return rpls
