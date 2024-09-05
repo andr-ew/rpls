@@ -84,7 +84,12 @@ local function UI(args)
                 crops.dirty.grid = true 
             end),
             input = function()
-                script_focus = 'rpls'
+                if z==1 then
+                    script_focus = 'rpls'
+
+                    crops.dirty.screen = true
+                    crops.dirty.grid = true
+                end
             end
         }
 
