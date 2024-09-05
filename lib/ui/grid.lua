@@ -174,7 +174,7 @@ local function App(args)
         -- local right = 16
         
         _ui{ focused = true }
-        if rpls.grid_graphics then _gfx() end
+        _gfx()
     end
 end
     

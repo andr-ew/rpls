@@ -38,7 +38,6 @@ App.grid = include 'lib/ui/grid'                            --grid UI
 
 script_focus = 'rpls'
 rpls.crow_outputs_enabled = true
-rpls.grid_graphics = true
 
 --set up modulation sources
 
