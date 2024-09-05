@@ -90,7 +90,7 @@ local function UI(args)
 
         if wide then
             _wob{
-                x = 3, y = y, state = crops.of_param('~'),
+                x = 3, y = y, state = rpls.of_param('~'),
             }
 
             for i,k in ipairs({ 1, 2, 'rec' }) do
@@ -102,13 +102,13 @@ local function UI(args)
                     levels = { 4, 15 }, min = 1, max = #p.options, wrap = false,
                     -- state = crops.of_param(id),
                     state = crops.of_variable(
-                        params:get(id),
+                        rpls.get_param(id),
                         function(v)
                             local t = util.time() - (downtimes[i] or util.time())
                             local st = (1.75 + (math.random() * 0.5)) * (t)
 
                             rpls.slew_temp(i, st)
-                            params:set(id, v)
+                            rpls.set_param(id, v)
 
                             downtime = nil
                         end
@@ -119,7 +119,6 @@ local function UI(args)
                 }
             end
         end
-
     end
 end
 

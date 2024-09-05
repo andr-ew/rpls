@@ -53,14 +53,14 @@ function p.pre_init()
     end
 end
 
-local function defaults()
-    params:set('rate 1', tab.key(rpls.rates[1].k, '2'))
-    params:set('rate 2', tab.key(rpls.rates[2].k, '-1/2'))
-    params:set('vol 1', 0.5 * 5)
-    params:set('vol rec', 0 * 5)
-    params:set('rec > rec', 0.5 * 5)
-    params:set('hp', 0.25 * 7)
-    params:set('lp', 0.8 * 7)
+local function defaults(silent)
+    params:set('rate 1', tab.key(rpls.rates[1].k, '2'), silent)
+    params:set('rate 2', tab.key(rpls.rates[2].k, '-1/2'), silent)
+    params:set('vol 1', 0.5 * 5, silent)
+    params:set('vol rec', 0 * 5, silent)
+    params:set('rec > rec', 0.5 * 5, silent)
+    params:set('hp', 0.25 * 7, silent)
+    params:set('lp', 0.8 * 7, silent)
 end
 
 function p.add_softcut_params()
@@ -73,15 +73,23 @@ function p.add_softcut_params()
             end
         end
         local clk
+        local reset = 0
         local function slew_temp(idx, v)
             local wait = v --0.1
 
-            if clk then clock.cancel(clk) end
+            if clk then 
+                rpls.set_param('slew', reset)
+                clock.cancel(clk) 
+            end
             clk = clock.run(function() 
-                stereo('rate_slew_time', idx, v)
+                -- stereo('rate_slew_time', idx, v)
+
+                reset = params:get('slew')
+                rpls.set_param('slew', v)
 
                 clock.sleep(wait)
-                update_slew()
+                -- update_slew()
+                rpls.set_param('slew', reset)
             end)
         end
 
@@ -564,7 +572,7 @@ function p.add_pset_params()
                 params:set(p.id, p.default or (p.controlspec and p.controlspec.default) or 0, true)
             end end
 
-            defaults()
+            defaults(true)
     
             params:bang()
         end

@@ -32,5 +32,12 @@ rpls.pages_all = { 'C', 'R', '>', 'F' }
 
 rpls.pages = { 'C', 'R', '>', 'F' }
 
+rpls.set_param = function(id, v) params:set(id, v) end
+rpls.get_param = function(id) return patcher.get_value_by_destination(id) end
+
+rpls.of_param = function(id) return {
+    rpls.get_param(id),
+    rpls.set_param, id,
+} end
 
 return rpls
