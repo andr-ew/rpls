@@ -163,7 +163,32 @@ function p.add_softcut_params()
 
     params:add_separator('clock')
     do
-        local function set_loop_points(t)
+        local FREE, SYNC = 1, 2
+        local modenames = { 'free', 'sync' } 
+        
+        local mode = FREE
+        
+        local quant_secs = 0.005
+        local quant
+
+        local beats = 1
+    
+        local sync_mults = {
+            1/32, 1/16, 1/8, 1/7, 1/6, 1/5, 1/4, 1/3, 1/2, 1/1, 
+            2/1, 3/1, 4/1, 5/1, 6/1, 7/1, 8/1,
+        }
+        local sync_mult_names = { 
+            '1/32', '1/16', '1/8', '1/7', '1/6', '1/5', '1/4', '1/3', '1/2', '1/1', 
+            '2/1', '3/1', '4/1', '5/1', '6/1', '7/1', '8/1',
+        }
+
+        local beats_sync = tab.key(sync_mults, 1/1)
+
+        local function update_loop_points(beat_sec)
+            beat_sec = beat_sec or clock.get_beat_sec()
+            local bt = mode==FREE and beats or beats_sync
+            local t = bt * beat_sec
+
             local mar = (0.5*2) + (5*3)
             for i = 1,3 do
                 rpls.loop_points[i][1] = (i - 1) * (mar)
@@ -171,37 +196,9 @@ function p.add_softcut_params()
             end
         end
 
-        local beats = 1
-
-        local quant_secs = 0.005
-        local quant
-
-        function clock.tempo_change_handler(bpm)
-            local beat_sec = 60 / bpm
-            quant = quant_secs / beat_sec
-            
-            set_loop_points(beats * beat_sec)
-        end
-        clock.tempo_change_handler(clock.get_tempo())
+        local clk_free = nil
+        local clks_sync = { main = nil, [1] = nil, [2] = nil }
         
-        patcher.add_destination_and_param{
-            type = 'control', id = 'clock mult',
-            controlspec = cs.def { 
-                min = 0, max = 8, default = 2, quantum = 1/4/32, units = 'v',
-            },
-            action = function(v)
-                beats = math.max(v, quant)
-                set_loop_points(beats * clock.get_beat_sec())
-                
-                crops.dirty.screen = true
-            end
-        }
-
-        for i = 1,3 do
-            stereo('loop_start', i, 0)
-            stereo('loop_end', i, buf_time)
-        end
-
         local function res(i)
             local st = rpls.loop_points[rpls.heads[i]][1] --- 0.1
             local en = rpls.loop_points[rpls.heads[i]][2] + 0.14--+ 0.25
@@ -221,35 +218,127 @@ function p.add_softcut_params()
             end
             rpls.tick_all = 0
         end
-       
-        clock.run(function()
-            while true do
-                local time = beats
 
-                if rpls.tick_all >= time then
-                    resall()
-                else
-                    for i = 1,2 do
-                        if rpls.tick[i] >= time then res(i) end
+        local function update_clock()
+            if clk_free then clock.cancel(clk_free) end
+            for _,clk in pairs(clks_sync) do if clk then clock.cancel(clk) end end
+
+            if mode == FREE then
+                clk_free = clock.run(function()
+                    while true do
+                        local time = beats
+
+                        if rpls.tick_all >= time then
+                            resall()
+                        else
+                            for i = 1,2 do
+                                if rpls.tick[i] >= time then res(i) end
+                            end
+                        end
+                        
+                        clock.sync(quant)
+
+                        for i = 1,3 do 
+                            local rate = math.abs(rpls.get_rate(i))
+                            rpls.tick[i] = rpls.tick[i] + (quant * rate)
+                        end
+                        rpls.tick_all = rpls.tick_all + quant
+
+                        do
+                            if freeze == 0 then
+                                rpls.tick_tri = (rpls.tick_tri + (quant / (math.max(beats, quant*1.2) * 3)))
+                            end
+
+                            -- crops.dirty.screen = true
+                            if rpls.grid_graphics then crops.dirty.grid = true end
+                        end
                     end
-                end
-                
-                clock.sync(quant)
+                end)
+            elseif mode == SYNC then
+                clks_sync.main = clock.run(function() 
+                    while true do
+                        -- resall()
+                        do
+                            table.insert(rpls.heads, 1, table.remove(rpls.heads, #rpls.heads))
+                            -- for i = 1,3 do
+                            --     res(i)
+                            -- end
+                            res(3)
+                            rpls.tick_all = 0
+                        end
 
-                for i = 1,3 do 
-                    local rate = math.abs(rpls.get_rate(i))
-                    rpls.tick[i] = rpls.tick[i] + (quant * rate)
+                        clock.sync(beats_sync)
+                    end
+                end)
+                for i = 1,2 do
+                    clks_sync[i] = clock.run(function() 
+                        while true do
+                            local rate = math.abs(rpls.get_rate(i))
+                            
+                            -- if rate > 1 then
+                                res(i)
+                            -- end
+                            
+                            clock.sync(beats_sync / math.max(1, rate))
+                        end
+                    end)
                 end
-                rpls.tick_all = rpls.tick_all + quant
-
-                if freeze == 0 then
-                    rpls.tick_tri = (rpls.tick_tri + (quant / (math.max(beats, quant*1.2) * 3)))
-                end
-
-                -- crops.dirty.screen = true
-                if rpls.grid_graphics then crops.dirty.grid = true end
+                        
+                -- TODO: clock to incriment ticks for visuals only, at the framerate
             end
-        end)
+        end
+
+        params:add{
+            type='option', id='clock_mode', name = 'mode',
+            options = modenames,
+            action = function(v)
+                mode = v
+
+                update_loop_points()
+                update_clock()
+            end
+        }
+
+        function clock.tempo_change_handler(bpm)
+            local beat_sec = (60 / bpm)
+            quant = quant_secs / beat_sec
+            
+            -- set_loop_points(beats * beat_sec)
+            update_loop_points(beat_sec)
+            crops.dirty.screen = true
+        end
+        clock.tempo_change_handler(clock.get_tempo())
+        
+        patcher.add_destination_and_param{
+            type = 'control', id = 'clock mult', name = 'clock mult',
+            controlspec = cs.def { 
+                min = 0, max = 8, default = 2, quantum = 1/4/32, units = 'v',
+            },
+            action = function(v)
+                beats = math.max(v, quant)
+                -- set_loop_points(beats * )
+                update_loop_points()
+                
+                crops.dirty.screen = true
+            end
+        }
+        patcher.add_destination_and_param{
+            type = 'option', id = 'clock mult sync', name = 'clock mult',
+            options = sync_mult_names, default = beats_sync,
+            action = function(v)
+                beats_sync = sync_mults[v]
+                -- beats = math.max(v, quant)
+                -- set_loop_points(beats * clock.get_beat_sec())
+                update_loop_points()
+                
+                crops.dirty.screen = true
+            end
+        }
+
+        for i = 1,3 do
+            stereo('loop_start', i, 0)
+            stereo('loop_end', i, buf_time)
+        end
 
         patcher.add_destination_and_param{
             type='control', id='fade',
@@ -316,6 +405,7 @@ function p.add_softcut_params()
         return amp
     end
 
+    --TODO: check feedback amps getting fully 0-ed
     params:add_separator('feedback')
     for _,idx in pairs{ 3, 1, 2 } do
         local off = (idx - 1) * 2
