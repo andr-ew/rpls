@@ -7,6 +7,8 @@ local play_mar = 0.1
 local rec_mar = 0.2
 -- rec_fade = 0.1
 
+local initialized = false
+
 local function stereo(command, pair, ...)
     local off = (pair - 1) * 2
     for i = 1, 2 do
@@ -196,9 +198,6 @@ function p.add_softcut_params()
             end
         end
 
-        local clk_free = nil
-        local clks_sync = { main = nil, [1] = nil, [2] = nil }
-        
         local function res(i)
             local st = rpls.loop_points[rpls.heads[i]][1] --- 0.1
             local en = rpls.loop_points[rpls.heads[i]][2] + 0.14--+ 0.25
@@ -218,6 +217,9 @@ function p.add_softcut_params()
             end
             rpls.tick_all = 0
         end
+        
+        local clk_free = nil
+        local clks_sync = { main = nil, gfx = nil, [1] = nil, [2] = nil }
 
         local function update_clock()
             if clk_free then clock.cancel(clk_free) end
@@ -249,7 +251,7 @@ function p.add_softcut_params()
                                 rpls.tick_tri = (rpls.tick_tri + (quant / (math.max(beats, quant*1.2) * 3)))
                             end
 
-                            -- crops.dirty.screen = true
+                            crops.dirty.screen = true
                             if rpls.grid_graphics then crops.dirty.grid = true end
                         end
                     end
@@ -283,19 +285,70 @@ function p.add_softcut_params()
                         end
                     end)
                 end
-                        
-                -- TODO: clock to incriment ticks for visuals only, at the framerate
+                local spf = 1/60
+
+                clks_sync.gfx = clock.run(function()
+                    while true do
+                        clock.sleep(spf)
+
+                        --i really don't know why /10
+                        local bpf = spf * clock.get_beat_sec() / beats_sync / 10 
+
+                        for i = 1,3 do 
+                            local rate = math.abs(rpls.get_rate(i))
+                            rpls.tick[i] = rpls.tick[i] + (bpf * rate)
+                        end
+                        rpls.tick_all = rpls.tick_all + (bpf)
+
+                        do
+                            if freeze == 0 then
+                                rpls.tick_tri = (rpls.tick_tri - (spf / (beats_sync * 3)))
+                            end
+
+                            crops.dirty.screen = true
+                            if rpls.grid_graphics then crops.dirty.grid = true end
+                        end
+                    end
+                end)
             end
+        end
+
+        local function update_clock_mode(new_mode)
+            if new_mode == SYNC then
+                local closest = 1
+                local d = math.abs(sync_mults[closest] - beats)
+
+                for i,v in ipairs(sync_mults) do
+                    local this_d = math.abs(v - beats)
+                    if this_d < d then
+                        closest = i
+                        d = this_d
+                    end
+                end
+                if initialized then params:set('clock mult sync', closest) end
+                
+                params:hide('clock mult')
+                params:show('clock mult sync')
+            elseif new_mode == FREE then
+                if initialized then params:set('clock mult', beats_sync) end
+
+                params:show('clock mult')
+                params:hide('clock mult sync')
+            end
+
+            _menu.rebuild_params() --questionable?
+
+            mode = new_mode
         end
 
         params:add{
             type='option', id='clock_mode', name = 'mode',
             options = modenames,
             action = function(v)
-                mode = v
-
-                update_loop_points()
+                update_clock_mode(v)
                 update_clock()
+
+                crops.dirty.screen = true
             end
         }
 
@@ -683,6 +736,8 @@ end
 
 function p.post_init()
     params:set('freeze', 0)
+
+    initialized = true
 end
 
 return p

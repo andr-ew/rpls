@@ -143,13 +143,93 @@ local function ToggleHold()
     end
 end
 
+local function Clk()
+    local _free = Patcher.enc.destination(Enc.control())
+    local _sync = Patcher.enc.destination(Enc.integer())
+    local _screen = Patcher.screen.destination(Screen.list())
+
+    local function flip()
+        local id = 'clock_mode'
+        local p = params:lookup_param(id)
+        local options = p.options
+
+        params:set(id, params:get(id) % (#options) + 1)
+    end
+
+    local free_internal = nil 
+
+    return function(props)
+        local free = props.free
+        
+        local p = params:lookup_param(props.id)
+        local options = p.options
+        local spec = p.controlspec
+
+        if free then
+            local new_spec = cs.def{ 
+                min = spec.minval - 0.5, max = spec.maxval, quantum = spec.quantum,
+            }
+            _free(props.id, rpls.mapping, {
+                n = props.n, 
+                controlspec = new_spec,
+                state = {
+                    free_internal or params:get('clock mult'),
+                    function(v)
+                        if v < spec.minval then
+                            if v <= new_spec.minval then flip() end
+                        else
+                            rpls.set_param(props.id, v)
+                        end
+
+                        free_internal = v
+                    end
+                }
+            })
+        else
+            local max = #params:lookup_param(props.id).options
+
+            _sync(props.id, rpls.mapping, {
+                n = props.n, 
+                min = 1, max = max + 1,
+                state = {
+                    max - params:get(props.id) + 1,
+                    function(v)
+                        if v > max then flip()
+                        else rpls.set_param(props.id, max - v + 1) end
+                    end
+                }
+            })
+        end
+
+        _screen(props.id, rpls.mapping, {
+            x = e[props.n].x, y = e[props.n].y, margin = 3,
+            text = {
+                props.label or props.id, 
+                free and (
+                        string.format(
+                            props.format or '%.2f', rpls.get_param(props.id)
+                        )
+                        ..(spec.units or '')
+                    ) or (
+                        options[rpls.get_param(props.id)]
+                    ),
+            },
+            levels = { 4, 15 },
+        }, props.label)
+    end
+end
+
 local Pages = {}
 
 Pages['C'] = function()
-    local _clock, _vol1, _vol2 = Control(), Control(), Control()
+    local _clock, _vol1, _vol2 = Clk(), Control(), Control()
 
     return function()
-        _clock{ id = 'clock mult', label = 'clk', n = 1, round = 0.001 }
+        do
+            local free = params:string('clock_mode') == 'free'
+            local id = free and 'clock mult' or 'clock mult sync'
+            _clock{ id = id, free = free, label = 'clk', n = 1, round = 0.001 }
+        end
         _vol1{ id = 'vol 1', n = 2, label = 'vol1' } 
         _vol2{ id = 'vol 2', n = 3, label = 'vol2' } 
     end
@@ -227,7 +307,7 @@ local function Norns()
             label_toggle = 'frz', label_hold = 'clr'
         }
 
-        -- _gfx()
+        _gfx()
     end
 end
 
