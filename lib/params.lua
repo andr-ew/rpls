@@ -246,7 +246,7 @@ function p.add_softcut_params()
                     rpls.tick_tri = (rpls.tick_tri + (quant / (math.max(beats, quant*1.2) * 3)))
                 end
 
-                crops.dirty.screen = true
+                -- crops.dirty.screen = true
                 if rpls.grid_graphics then crops.dirty.grid = true end
             end
         end)

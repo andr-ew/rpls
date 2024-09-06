@@ -227,7 +227,7 @@ local function Norns()
             label_toggle = 'frz', label_hold = 'clr'
         }
 
-        _gfx()
+        -- _gfx()
     end
 end
 
