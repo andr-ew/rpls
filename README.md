@@ -66,8 +66,12 @@ the **clock mult** param offers different windows into rpls depending on its use
 | ---                               | ---                              |
 | low values, < 1                   | pseudo-granular textures         |
 | mid values, 1 - 2                 | chopped delay                    |
-| whole number values (1.0, 2.0...) | syced rhythmic delay             |
+| whole number multiples (1.0, 2.0...) & divisions (1/2, 1/3..) | syced rhythmic delay             |
 | large values, > 2                 | chopped tape loops               |
+
+#### sync / free
+
+by default, **clock mult** is in **free** mode, meaning that a twist of the encoder will shift rpls in & out of time with the global clock. turn **clock mult** all the way down & continue turning past zero to enter **sync** mode. **clock mult** will now be quantized to whole number multiples/divisions of the global clock. in addional clock sync is more accurate in this mode.
 
 ### page `R`
 
