@@ -2,7 +2,7 @@
 --
 -- varispeed multitap echo
 --
--- v1.1.1 @andrew
+-- v1.2.0 @andrew
 --
 -- K2: page
 -- K3: freeze
