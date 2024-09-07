@@ -83,7 +83,7 @@ do
 
             _polygon{
                 faces = faces, x = x, y = y, r = inner_r, level = util.round(inner_lvl * 5),
-                rotation = TAU * (1 - tick_tri) * inner_rate,
+                rotation = TAU * (1 - rpls.tick_tri) * inner_rate,
             }
 
             draw(ratio, faces, x, y, inner_r, inner_rate, inner_lvl)
@@ -102,11 +102,11 @@ local function Gfx()
     return function()
         local pts = poly_points{
             faces = 3, x = 128/2, y = 64/2, r = 32, 
-            rotation = TAU * (1 - tick_tri),
+            rotation = TAU * (1 - rpls.tick_tri),
         }
 
         for vc = 1,3 do
-            local head = 3 - heads[vc] + 1
+            local head = 3 - rpls.heads[vc] + 1
 
             _edge{ 
                 points = pts, n = head, 
@@ -120,10 +120,10 @@ local function Gfx()
 
         for vc = 1,3 do
             if patcher.get_value_by_destination('freeze') == 0 or vc ~= 3 then
-                local head = 3 - heads[vc] + 1
+                local head = 3 - rpls.heads[vc] + 1
                 local beats = patcher.get_value_by_destination('clock mult')
-                local ph = math.min(tick[vc] / beats, 1)
-                local pos = get_rate(vc) > 0 and ph or 1-ph
+                local ph = math.min(rpls.tick[vc] / beats, 1)
+                local pos = rpls.get_rate(vc) > 0 and ph or 1-ph
             
                 _point{ points = pts, n = head, x = pos, level = 15 }
             end
@@ -132,7 +132,7 @@ local function Gfx()
         for i = 1,2 do 
             -- local fb = patcher.get_value_by_destination(i..' > rec')
             fb = rpls.feedback[i]
-            local ratio = get_rate(i) / get_rate(3)
+            local ratio = rpls.get_rate(i) / rpls.get_rate(3)
 
             if fb > 0 and math.abs(ratio) ~= 1 then
                 _recur_poly{
