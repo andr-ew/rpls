@@ -19,6 +19,7 @@ a spiritual successor to [alliterate](https://github.com/andr-ew/prosody#alliter
 **also supported**
 
 - [crow](https://monome.org/docs/crow/)
+- grid
 
 ## install
 
@@ -129,6 +130,14 @@ feedback paths involving the play heads lead to continuously transposed overdubs
 - **E3:** cutoff of the lowpass filter, affects output only (both playheads)
 
 **IMPORTANT:** be careful with high resonnace values - the highpass filter feeds back into the record head, so the input filter can easily self-oscillate & create loud sounds
+
+## grid UI
+
+only the first row is used:
+
+| columns 1 - 8                    | columns 11 - 14   | column 16    |
+| -------------------------------- | ----------------- | ------------ |
+| rate +/-, two keys for each head | page focus (CR>F) | freeze/clear |
 
 ## crow
 
