@@ -141,7 +141,7 @@ only the first row is used:
 
 | columns 1 - 8                    | columns 11 - 14   | column 16    |
 | -------------------------------- | ----------------- | ------------ |
-| rate +/-, two keys for each head | page focus (CR>F) | freeze/clear |
+| rate +/-, two keys for each head. hold for slew | page focus (CR>F) | freeze/clear |
 
 ## crow
 
