@@ -71,7 +71,7 @@ the **clock mult** param offers different windows into rpls depending on its use
 
 #### sync / free
 
-by default, **clock mult** is in **free** mode, meaning that a twist of the encoder will shift rpls in & out of time with the global clock. turn **clock mult** all the way down & continue turning past zero to enter **sync** mode. **clock mult** will now be quantized to whole number multiples/divisions of the global clock. in addional clock sync is more accurate in this mode.
+by default, **clock mult** is in **free** mode, meaning that a twist of the encoder will shift rpls in & out of time with the global clock. turn **clock mult** all the way down & continue turning past zero to enter **sync** mode. **clock mult** will now be quantized to whole number multiples/divisions of the global clock. additionally, clock sync is more accurate in this mode.
 
 ### page `R`
 
